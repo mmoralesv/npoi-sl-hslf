@@ -15,9 +15,196 @@
    limitations under the License.
 ==================================================================== */
 
+using NPOI.HSLF.Record;
+using NPOI.Util;
+using System.Linq;
+using System.Collections.Generic;
+
 namespace NPOI.HSLF.Record
 {
-	public class SlideListWithText
-	{
-	}
+
+    /**
+     * These are tricky beasts. They contain the text of potentially
+     *  many (normal) slides. They are made up of several sets of
+     *  - SlidePersistAtom
+     *  - TextHeaderAtom
+     *  - TextBytesAtom / TextCharsAtom
+     *  - StyleTextPropAtom (optional)
+     *  - TextSpecInfoAtom (optional)
+     *  - InteractiveInfo (optional)
+     *  - TxInteractiveInfoAtom (optional)
+     * and then the next SlidePersistAtom.
+     *
+     * Eventually, Slides will find the blocks that interest them from all
+     *  the SlideListWithText entries, and refere to them
+     *
+     * For now, we scan through looking for interesting bits, then creating
+     *  the helpful Sheet from model for them
+     */
+
+    // For now, pretend to be an atom
+    public sealed class SlideListWithText : RecordContainer
+    {
+        private static long _type = RecordTypes.SlideListWithText.typeID;
+
+        /**
+         * Instance filed of the record header indicates that this SlideListWithText stores
+         * references to slides
+         */
+        public const int SLIDES = 0;
+        /**
+         * Instance filed of the record header indicates that this SlideListWithText stores
+         * references to master slides
+         */
+        public const int MASTER = 1;
+        /**
+         * Instance filed of the record header indicates that this SlideListWithText stores
+         * references to notes
+         */
+        public const int NOTES = 2;
+
+        private byte[] _header;
+
+        private SlideAtomsSet[] slideAtomsSets;
+
+        /**
+         * Create a new holder for slide records
+         */
+        protected SlideListWithText(byte[] source, int start, int len)
+        {
+            // Grab the header
+            _header = source.Skip(start).Take(8).ToArray();
+
+            // Find our children
+            _children = Record.FindChildRecords(source, start+8, len-8);
+
+            // Group our children together into SlideAtomsSets
+            // That way, model layer code can just grab the sets to use,
+            //  without having to try to match the children together
+            List<SlideAtomsSet> sets = new List<SlideAtomsSet>();
+            for (int i = 0; i<_children.Length; i++)
+            {
+                if (_children[i] is SlidePersistAtom)
+                {
+                    // Find where the next SlidePersistAtom is
+                    int endPos = i+1;
+                    while (endPos < _children.Length && !(_children[endPos] is SlidePersistAtom))
+                    {
+                        endPos += 1;
+                    }
+
+                    int clen = endPos - i - 1;
+
+                    // Create a SlideAtomsSets, not caring if they're empty
+                    //if(emptySet) { continue; }
+                    Record[] spaChildren = _children.Skip(i+1).Take(i+1+clen).ToArray();
+                    SlideAtomsSet set = new SlideAtomsSet((SlidePersistAtom)_children[i], spaChildren);
+                    sets.Add(set);
+
+                    // Wind on
+                    i += clen;
+
+
+
+                    // Turn the list into an array
+                    slideAtomsSets = sets.ToArray();
+                }
+            }
+        }
+
+        /**
+         * Create a new, empty, SlideListWithText
+         */
+        public SlideListWithText()
+        {
+            _header = new byte[8];
+            LittleEndian.PutUShort(_header, 0, 15);
+            LittleEndian.PutUShort(_header, 2, (int)_type);
+            LittleEndian.PutInt(_header, 4, 0);
+
+            // We have no children to start with
+            _children = new Record[0];
+            slideAtomsSets = new SlideAtomsSet[0];
+        }
+
+        /**
+         * Add a new SlidePersistAtom, to the end of the current list,
+         *  and update the internal list of SlidePersistAtoms
+         */
+        public void addSlidePersistAtom(SlidePersistAtom spa)
+        {
+            // Add the new SlidePersistAtom at the end
+            AppendChildRecord(spa);
+
+            SlideAtomsSet newSAS = new SlideAtomsSet(spa, new Record[0]);
+
+            // Update our SlideAtomsSets with this
+            slideAtomsSets = slideAtomsSets.Concat(new[] { newSAS }).ToArray();
+        }
+
+        public int GetInstance()
+        {
+            return LittleEndian.GetShort(_header, 0) >> 4;
+        }
+
+        public void setInstance(int inst)
+        {
+            LittleEndian.PutShort(_header, 0, (short)((inst << 4) | 0xF));
+        }
+
+        /**
+         * Get access to the SlideAtomsSets of the children of this record
+         */
+        public SlideAtomsSet[] getSlideAtomsSets()
+        {
+            return slideAtomsSets;
+        }
+
+        /**
+        * Get access to the SlideAtomsSets of the children of this record
+*/
+        public void setSlideAtomsSets(SlideAtomsSet[] sas)
+        {
+            slideAtomsSets = sas.Select(x => x.Copy()).ToArray();
+        }
+
+        /**
+         * Return the value we were given at creation
+         */
+        public override long GetRecordType() { return _type; }
+
+        /**
+         * Write the contents of the record back, so it can be written
+         *  to disk
+         */
+        public override void WriteOut(OutputStream os)
+        {
+            WriteOut(_header[0], _header[1], _type, _children, os);
+        }
+
+        /**
+         * Inner class to wrap up a matching set of records that hold the
+         *  text for a given sheet. Contains the leading SlidePersistAtom,
+         *  and all of the records until the next SlidePersistAtom. This
+         *  includes sets of TextHeaderAtom and TextBytesAtom/TextCharsAtom,
+         *  along with some others.
+         */
+        public class SlideAtomsSet
+        {
+            private SlidePersistAtom slidePersistAtom;
+            private Record[] slideRecords;
+
+            /** Get the SlidePersistAtom, which gives details on the Slide this text is associated with */
+            public SlidePersistAtom getSlidePersistAtom() { return slidePersistAtom; }
+            /** Get the Text related records for this slide */
+            public Record[] getSlideRecords() { return slideRecords; }
+
+            /** Create one to hold the Records for one Slide's text */
+            public SlideAtomsSet(SlidePersistAtom s, Record[] r)
+            {
+                slidePersistAtom = s;
+                slideRecords = r.Select(x => x.Copy()).ToArray();
+            }
+        }
+    }
 }

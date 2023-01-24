@@ -69,7 +69,7 @@ namespace NPOI.SS.Util
          * Each group may optionally be prefixed with a single '$'.
          */
         //private const string CELL_REF_PATTERN = @"^\$?([A-Za-z]+)\$?([0-9]+)";
-        //private static final Pattern CELL_REF_PATTERN = Pattern.compile("(\\$?[A-Z]+)?" + "(\\$?[0-9]+)?", Pattern.CASE_INSENSITIVE);
+        //private static Pattern CELL_REF_PATTERN = Pattern.compile("(\\$?[A-Z]+)?" + "(\\$?[0-9]+)?", Pattern.CASE_INSENSITIVE);
         private static Regex CELL_REF_PATTERN = new Regex("(\\$?[A-Z]+)?" + "(\\$?[0-9]+)?", RegexOptions.IgnoreCase | RegexOptions.Compiled| RegexOptions.CultureInvariant);
 
         /**
@@ -78,7 +78,7 @@ namespace NPOI.SS.Util
          * If a reference does not match this pattern, it might match COLUMN_REF_PATTERN or ROW_REF_PATTERN
          * References may optionally include a single '$' before each group, but these are excluded from the Matcher.group(int).
          */
-        //private static final Pattern STRICTLY_CELL_REF_PATTERN = Pattern.compile("\\$?([A-Z]+)" + "\\$?([0-9]+)", Pattern.CASE_INSENSITIVE);
+        //private static Pattern STRICTLY_CELL_REF_PATTERN = Pattern.compile("\\$?([A-Z]+)" + "\\$?([0-9]+)", Pattern.CASE_INSENSITIVE);
         private static Regex STRICTLY_CELL_REF_PATTERN = new Regex("^\\$?([A-Z]+)" + "\\$?([0-9]+)$", RegexOptions.IgnoreCase | RegexOptions.Compiled | RegexOptions.CultureInvariant);
         /**
          * Matches a run of one or more letters.  The run of letters is group 1.  
@@ -94,7 +94,7 @@ namespace NPOI.SS.Util
          * Named range names must start with a letter or underscore.  Subsequent characters may include
          * digits or dot.  (They can even end in dot).
          */
-        //private static final Pattern NAMED_RANGE_NAME_PATTERN = Pattern.compile("[_A-Z][_.A-Z0-9]*", Pattern.CASE_INSENSITIVE);
+        //private static Pattern NAMED_RANGE_NAME_PATTERN = Pattern.compile("[_A-Z][_.A-Z0-9]*", Pattern.CASE_INSENSITIVE);
         private static Regex NAMED_RANGE_NAME_PATTERN = new Regex("^[_A-Za-z][_.A-Za-z0-9]*$", RegexOptions.IgnoreCase | RegexOptions.Compiled | RegexOptions.CultureInvariant);
         //private static string BIFF8_LAST_COLUMN = "IV";
         //private static int BIFF8_LAST_COLUMN_TEXT_LEN = BIFF8_LAST_COLUMN.Length;

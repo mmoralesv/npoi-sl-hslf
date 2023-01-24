@@ -52,7 +52,7 @@ namespace NPOI.POIFS.FileSystem
         public abstract bool TryGetBlockAt(int offset, out ByteBuffer byteBuffer);
 
         /// <summary>
-        /// Extends the file if required to hold blocks up to
+        /// : the file if required to hold blocks up to
         /// the specified offset, and return the block from there.
         /// </summary>
         /// <param name="offset"></param>

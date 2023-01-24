@@ -190,7 +190,7 @@ namespace NPOI.Util
      * @param offset the initial offset into the
      *               byte array. it is assumed that string[ offset ] and string[ offset +
      *               1 ] contain the first 16-bit unicode character
-     * @param len    the max. length of the final string
+     * @param len    the max. length of the string
      * @return the converted string, never {@code null}.
      * @throws ArrayIndexOutOfBoundsException if offset is out of bounds for
      *                                        the byte array (i.e., is negative or is greater than or equal to
