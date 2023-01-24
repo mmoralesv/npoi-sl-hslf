@@ -42,7 +42,7 @@ namespace NPOI.POIFS.FileSystem
         private short unknown1 = 3;        // see below
         private String command;            // ASCIIZ, stored in this field without the terminating zero
         private byte[] dataBuffer;         // varying size, the actual native data
-        private short flags3 = 0;          // some final flags? or zero terminators?, sometimes not there
+        private short flags3 = 0;          // some flags? or zero terminators?, sometimes not there
 
         /**
          * the field encoding mode - merely a try-and-error guess ...

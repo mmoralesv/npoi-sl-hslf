@@ -22,7 +22,7 @@ namespace NPOI.HPSF
 {
     public class UnicodeString
     {
-        //private final static POILogger logger = POILogFactory
+        //private static POILogger logger = POILogFactory
         //   .getLogger( UnicodeString.class );
 
         private byte[] _value;

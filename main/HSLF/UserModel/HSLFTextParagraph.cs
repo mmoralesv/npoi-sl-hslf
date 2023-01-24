@@ -1209,7 +1209,7 @@ for (HSLFTextParagraph para : paragraphs)
 		HSLFHyperlink thisLink = run.getHyperlink();
 		if (thisLink != null && thisLink == lastLink)
 		{
-			// the hyperlink extends over this text run, increase its length
+			// the hyperlink : over this text run, increase its length
 			// TODO: the text run might be longer than the hyperlink
 			thisLink.setEndIndex(thisLink.getEndIndex() + run.getLength());
 		}

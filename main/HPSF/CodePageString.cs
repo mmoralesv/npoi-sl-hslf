@@ -24,7 +24,7 @@ namespace NPOI.HPSF
 {
     public class CodePageString
     {
-        //private final static POILogger logger = POILogFactory
+        //private static POILogger logger = POILogFactory
         //   .getLogger( CodePageString.class );
 
         private byte[] _value;
