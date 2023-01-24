@@ -16,6 +16,7 @@
 ==================================================================== */
 
 using NPOI.Common.UserModel;
+using NPOI.DDF;
 using NPOI.HSLF.Record;
 using NPOI.SL.UserModel;
 using NPOI.Util;
@@ -30,34 +31,33 @@ namespace NPOI.HSLF.UserModel
      */
     public class HSLFShapeFactory {
     // For logging
-    private static Logger LOG = LogManager.getLogger(HSLFShapeFactory.class);
 
     /**
      * Create a new shape from the data provided.
      */
     public static HSLFShape createShape(EscherContainerRecord spContainer, ShapeContainer<HSLFShape,HSLFTextParagraph> parent){
-        if (spContainer.getRecordId() == EscherContainerRecord.SPGR_CONTAINER){
+        if (spContainer.RecordId == EscherContainerRecord.SPGR_CONTAINER){
             return createShapeGroup(spContainer, parent);
         }
         return createSimpleShape(spContainer, parent);
     }
 
     public static HSLFGroupShape createShapeGroup(EscherContainerRecord spContainer, ShapeContainer<HSLFShape,HSLFTextParagraph> parent){
-        boolean isTable = false;
-        EscherRecord child = spContainer.getChild(0);
-        if (!(child instanceof EscherContainerRecord)) {
+        bool isTable = false;
+        EscherRecord child = spContainer.GetChild(0);
+        if (!(child is EscherContainerRecord)) {
             throw new RecordFormatException("Did not have a EscherContainerRecord: " + child);
         }
         EscherContainerRecord ecr = (EscherContainerRecord) child;
-        EscherRecord opt = HSLFShape.getEscherChild(ecr, EscherRecordTypes.USER_DEFINED);
+        EscherRecord opt = HSLFShape.GetEscherChild(ecr, EscherProperties.USER_DEFINED) as EscherRecord;
 
         if (opt != null) {
             EscherPropertyFactory f = new EscherPropertyFactory();
-            List<EscherProperty> props = f.createProperties( opt.serialize(), 8, opt.getInstance() );
-            for (EscherProperty ep : props) {
-                if (ep.getPropertyNumber() == EscherPropertyTypes.GROUPSHAPE__TABLEPROPERTIES.propNumber
-                    && ep instanceof EscherSimpleProperty
-                    && (((EscherSimpleProperty)ep).getPropertyValue() & 1) == 1) {
+            List<EscherProperty> props = f.CreateProperties( opt.Serialize(), 8, opt.Instance );
+            foreach (EscherProperty ep in props) {
+                if (ep.PropertyNumber == EscherProperties.GROUPSHAPE__TABLEPROPERTIES
+                    && ep is EscherSimpleProperty
+                    && (((EscherSimpleProperty)ep).PropertyValue & 1) == 1) {
                     isTable = true;
                     break;
                 }
@@ -76,9 +76,9 @@ namespace NPOI.HSLF.UserModel
      }
 
     public static HSLFShape createSimpleShape(EscherContainerRecord spContainer, ShapeContainer<HSLFShape,HSLFTextParagraph> parent){
-        EscherSpRecord spRecord = spContainer.getChildById(EscherSpRecord.RECORD_ID);
+        EscherSpRecord spRecord = spContainer.GetChildById(EscherSpRecord.RECORD_ID) as EscherSpRecord;
         if (spRecord == null) {
-            throw new RecordFormatException("Could not read EscherSpRecord as child of " + spContainer.getRecordName());
+            throw new RecordFormatException("Could not read EscherSpRecord as child of " + spContainer.RecordName);
         }
 
         HSLFShape shape;
@@ -98,7 +98,7 @@ namespace NPOI.HSLF.UserModel
                 shape = createNonPrimitive(spContainer, parent);
                 break;
             default:
-                if (parent instanceof HSLFTable) {
+                if (parent is HSLFTable) {
                     EscherTextboxRecord etr = spContainer.getChildById(EscherTextboxRecord.RECORD_ID);
                     if (etr == null) {
                         LOG.atWarn().log("invalid ppt - add EscherTextboxRecord to cell");
@@ -142,14 +142,14 @@ namespace NPOI.HSLF.UserModel
             return new HSLFFreeformShape(spContainer, parent);
         }
 
-        LOG.atInfo().log("Creating AutoShape for a NotPrimitive shape");
+        //LOG.atInfo().log("Creating AutoShape for a NotPrimitive shape");
         return new HSLFAutoShape(spContainer, parent);
     }
 
-    @SuppressWarnings("unchecked")
-    protected static <T : Record> T getClientDataRecord(EscherContainerRecord spContainer, int recordType) {
-        HSLFEscherClientDataRecord cldata = spContainer.getChildById(EscherClientDataRecord.RECORD_ID);
-        if (cldata != null) for (Record r : cldata.getHSLFChildRecords()) {
+    protected static Record.Record getClientDataRecord(EscherContainerRecord spContainer, int recordType) {
+        HSLFEscherClientDataRecord cldata = spContainer.GetChildById(EscherClientDataRecord.RECORD_ID);
+        if (cldata != null) {
+                foreach (Record.Record r in cldata.getHSLFChildRecords()) {
             if (r.getRecordType() == recordType) {
                 return (T)r;
             }
