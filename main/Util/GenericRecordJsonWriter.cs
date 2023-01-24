@@ -19,7 +19,6 @@ namespace NPOI.Util
         private static Regex ESC_CHARS = new Regex(@"[\\\p{C}\\\\]");
         private static string NL = System.Environment.NewLine;
 
-
         //Arrays.Fill(t, '\t')
 
         /**
