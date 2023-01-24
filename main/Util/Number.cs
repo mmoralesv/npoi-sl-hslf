@@ -1,10 +1,16 @@
 ﻿using System;
 using System.Collections;
+using System.Runtime.InteropServices.ComTypes;
 
 namespace NPOI.Util
 {
     public class Number
     {
+        private object _value;
+        public Number(object value)
+        {
+            _value = value;
+        }
         public static int BitCount(int i)
         {
             BitArray bitArray = new BitArray(BitConverter.GetBytes(i));
@@ -60,5 +66,15 @@ namespace NPOI.Util
             if (value is ushort) return true;
             return false;
         }
-    }
+
+        public int GetInt()
+        {
+            return (int)_value;
+        }
+
+		public double DoubleValue()
+		{
+            return (double)_value;
+		}
+	}
 }
