@@ -14,6 +14,8 @@
    See the License for the specific language governing permissions and
    limitations under the License.
 ==================================================================== */
+using NPOI.DDF;
+using NPOI.HSLF.Exceptions;
 using NPOI.Util;
 using System;
 using System.Collections.Generic;
@@ -32,92 +34,87 @@ namespace NPOI.HSLF.Record
      */
     public class HSLFEscherClientDataRecord : EscherClientDataRecord {
 
-    private List<org.apache.poi.hslf.record.Record> _childRecords = new ArrayList<>();
+        private List<Record> _childRecords = new List<Record>();
 
-    public HSLFEscherClientDataRecord() {}
+        public HSLFEscherClientDataRecord() { }
 
-    public HSLFEscherClientDataRecord(HSLFEscherClientDataRecord other) {
-        super(other);
-        // TODO: for now only reference others children, later copy them when Record.copy is available
-        // other._childRecords.stream().map(Record::copy).forEach(_childRecords::add);
-        _childRecords.addAll(other._childRecords);
-    }
-
-
-    public List<? : Record> getHSLFChildRecords() {
-        return _childRecords;
-    }
-
-    public void removeChild(Class<? : Record> childClass) {
-        _childRecords.removeIf(childClass::isInstance);
-    }
-
-    public void addChild(Record childRecord) {
-        _childRecords.add(childRecord);
-    }
-
-    @Override
-    public int fillFields(byte[] data, int offset, EscherRecordFactory recordFactory) {
-        int bytesRemaining = readHeader( data, offset );
-        byte[] remainingData = IOUtils.safelyClone(data,  offset+8,  bytesRemaining, RecordAtom.getMaxRecordLength());
-        setRemainingData(remainingData);
-        return bytesRemaining + 8;
-    }
-
-    @Override
-    public int serialize(int offset, byte[] data, EscherSerializationListener listener) {
-        listener.beforeRecordSerialize( offset, getRecordId(), this );
-
-        LittleEndian.putShort(data, offset, getOptions());
-        LittleEndian.putShort(data, offset+2, getRecordId());
-
-        byte[] childBytes = getRemainingData();
-
-        LittleEndian.putInt(data, offset+4, childBytes.length);
-        System.arraycopy(childBytes, 0, data, offset+8, childBytes.length);
-        int recordSize = 8+childBytes.length;
-        listener.afterRecordSerialize( offset+recordSize, getRecordId(), recordSize, this );
-        return recordSize;
-    }
-
-    @Override
-    public int getRecordSize() {
-        return 8 + getRemainingData().length;
-    }
-
-    @Override
-    public byte[] getRemainingData() {
-        try (UnsynchronizedByteArrayOutputStream bos = new UnsynchronizedByteArrayOutputStream()) {
-            for (org.apache.poi.hslf.record.Record r : _childRecords) {
-                r.writeOut(bos);
-            }
-            return bos.toByteArray();
-        } catch (IOException e) {
-            throw new HSLFException(e);
+        public HSLFEscherClientDataRecord(HSLFEscherClientDataRecord other) {
+            // TODO: for now only reference others children, later copy them when Record.copy is available
+            // other._childRecords.stream().map(Record::copy).forEach(_childRecords::add);
+            _childRecords.AddRange(other._childRecords);
         }
-    }
 
-    @Override
-    public void setRemainingData( byte[] remainingData ) {
-        _childRecords.clear();
-        int offset = 0;
-        while (offset < remainingData.length) {
-            org.apache.poi.hslf.record.Record r = Record.buildRecordAtOffset(remainingData, offset);
-            if (r != null) {
-                _childRecords.add(r);
-            }
-            long rlen = LittleEndian.getUInt(remainingData,offset+4);
-            offset = Math.toIntExact(offset + 8 + rlen);
+
+        public List<Record> getHSLFChildRecords() {
+            return _childRecords;
         }
-    }
 
-    @Override
-    public String getRecordName() {
-        return "HSLFClientData";
-    }
+        public void removeChild(Record childClass) {
+            _childRecords.Remove(childClass);
+        }
 
-    @Override
-    public HSLFEscherClientDataRecord copy() {
-        return new HSLFEscherClientDataRecord(this);
+        public void addChild(Record childRecord) {
+            _childRecords.Add(childRecord);
+        }
+
+        public override int FillFields(byte[] data, int offset, IEscherRecordFactory recordFactory) {
+            int bytesRemaining = ReadHeader(data, offset);
+            byte[] remainingData = IOUtils.SafelyClone(data, offset+8, bytesRemaining, RecordAtom.GetMaxRecordLength());
+            setRemainingData(remainingData);
+            return bytesRemaining + 8;
+        }
+
+        public override int Serialize(int offset, byte[] data, EscherSerializationListener listener) {
+            listener.BeforeRecordSerialize(offset, RecordId, this);
+
+            LittleEndian.PutShort(data, offset, Options);
+            LittleEndian.PutShort(data, offset+2, RecordId);
+
+            byte[] childBytes = getRemainingData();
+
+            LittleEndian.PutInt(data, offset+4, childBytes.Length);
+            childBytes.CopyTo(data, offset+8);//        System.arraycopy(childBytes, 0, data, offset+8, childBytes.Length);
+            int recordSize = 8+childBytes.Length;
+            listener.AfterRecordSerialize(offset+recordSize, RecordId, recordSize, this);
+            return recordSize;
+        }
+
+        public override int RecordSize
+        {
+            get { return 8 + RemainingData.Length; }
+        }
+
+        public override byte[] RemainingData { get { return new byte[0]; } set { } }
+        //{
+            //get {
+            //    try {
+            //        (OutputStream bos = new OutputStream())
+            //        foreach (Record r in _childRecords) {
+            //            r.WriteOut(bos);
+            //        }
+            //        return bos.toByteArray();
+            //    } catch (IOException e) {
+            //        throw new HSLFException(e);
+            //    }
+            //}
+            //set {
+            //    _childRecords.clear();
+            //    int offset = 0;
+            //    while (offset < remainingData.length) {
+            //        org.apache.poi.hslf.record.Record r = Record.buildRecordAtOffset(remainingData, offset);
+            //        if (r != null) {
+            //            _childRecords.add(r);
+            //        }
+            //        long rlen = LittleEndian.getUInt(remainingData, offset+4);
+            //        offset = Math.toIntExact(offset + 8 + rlen);
+            //    }
+            //} 
+        //}
+
+        public override string RecordName { get { return "HSLFClientData"; } }
+
+        public HSLFEscherClientDataRecord copy() {
+            return new HSLFEscherClientDataRecord(this);
+        }
     }
 }

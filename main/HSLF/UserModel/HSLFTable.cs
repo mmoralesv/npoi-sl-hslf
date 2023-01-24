@@ -16,6 +16,7 @@
 ==================================================================== */
 
 using NPOI.Common.UserModel;
+using NPOI.DDF;
 using NPOI.HSLF.Record;
 using NPOI.SL.UserModel;
 using NPOI.Util;
