@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-
-namespace NPOI.Util
+﻿namespace NPOI.Util
 {
+    using System;
+    using System.IO;
+    
     public class FilterOutputStream : OutputStream
     {
         protected OutputStream output;
@@ -34,7 +31,7 @@ namespace NPOI.Util
 
         public FilterOutputStream(Stream output)
         {
-            this.output = output;
+            this.output = (OutputStream)output;
         }
         public override void Write(int b)
         {
