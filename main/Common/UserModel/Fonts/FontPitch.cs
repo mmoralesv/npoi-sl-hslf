@@ -25,6 +25,11 @@ namespace NPOI.Common.UserModel.Fonts
 		{
 			return nativeId;
 		}
+
+		public FontPitchEnum GetNative()
+		{
+			return native;
+		}
 	
 	    public static FontPitch ValueOf(int flag)
 		{

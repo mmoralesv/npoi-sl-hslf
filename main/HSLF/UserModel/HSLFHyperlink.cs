@@ -167,7 +167,7 @@ namespace NPOI.HSLF.UserModel
     public void linkToSlide(Slide<HSLFShape,HSLFTextParagraph> slide) {
         assert(slide instanceof HSLFSlide);
         HSLFSlide sl = (HSLFSlide)slide;
-        int slideNum = slide.getSlideNumber();
+        int slideNum = slide.GetSlideNumber();
         String alias = "Slide "+slideNum;
 
         InteractiveInfoAtom iia = info.getInteractiveInfoAtom();

@@ -40,6 +40,11 @@ namespace NPOI.Common.UserModel.Fonts
 			return nativeId;
 		}
 
+		public FontFamilyEnum GetNative()
+		{
+			return native;
+		}
+
 		public static FontFamily ValueOf(int nativeId)
 		{
 			foreach (var item in Enum.GetValues(typeof(FontFamilyEnum)))

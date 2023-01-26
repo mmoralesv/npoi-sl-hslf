@@ -26,32 +26,121 @@ namespace NPOI.HSLF.Record
 	{
 		public override Record[] GetChildRecords()
 		{
-			throw new NotImplementedException();
+			MAX_RECORD_LENGTH = length;
 		}
 
-		public FontHeader GetFontHeader()
+		/**
+		 * @return the max record length allowed for FontEmbeddedData
+		 */
+		public static int GetMaxRecordLength()
 		{
-			throw new NotImplementedException();
+			return MAX_RECORD_LENGTH;
 		}
 
-		public override IDictionary<string, Func<object>> GetGenericProperties()
+		/**
+		 * Constructs a brand new font embedded record.
+		 */
+		/* package */
+		FontEmbeddedData()
 		{
-			throw new NotImplementedException();
+			_header = new byte[8];
+			_data = new byte[4];
+
+			LittleEndian.PutShort(_header, 2, (short)GetRecordType());
+			LittleEndian.PutInt(_header, 4, _data.Length);
 		}
 
-		public override long GetRecordType()
+		/**
+		 * Constructs the font embedded record from its source data.
+		 *
+		 * @param source the source data as a byte array.
+		 * @param start the start offset into the byte array.
+		 * @param len the length of the slice in the byte array.
+		 */
+		/* package */
+		FontEmbeddedData(byte[] source, int start, int len)
 		{
-			throw new NotImplementedException();
+			// Get the header.
+			_header = Arrays.CopyOfRange(source, start, start + 8);
+
+			// Get the record data.
+			_data = IOUtils.SafelyClone(source, start + 8, len - 8, MAX_RECORD_LENGTH);
+
+			// Must be at least 4 bytes long
+			if (_data.Length < 4)
+			{
+				throw new InvalidOperationException("The length of the data for a ExObjListAtom must be at least 4 bytes, but was only " + _data.Length);
+			}
 		}
 
-		public override bool IsAnAtom()
+		
+	public override long GetRecordType()
 		{
-			throw new NotImplementedException();
+			return RecordTypes.FontEmbeddedData.typeID;
 		}
 
-		public override void WriteOut(OutputStream o)
+		
+	public override void WriteOut(OutputStream _out)
 		{
-			throw new NotImplementedException();
-		}
+        _out.Write(_header);
+        _out.Write(_data);
 	}
+
+	/**
+     * Overwrite the font data. Reading values from this FontEmbeddedData instance while calling setFontData
+     * is not thread safe.
+     * @param fontData new font data
+     */
+	public void SetFontData(byte[] fontData)
+	{
+		fontHeader = null;
+		_data = (byte[])fontData.Clone();
+		LittleEndian.PutInt(_header, 4, _data.Length);
+	}
+
+	/**
+     * Read the font data. Reading values from this FontEmbeddedData instance while calling {@link #setFontData(byte[])}
+     * is not thread safe.
+     * @return font data
+     */
+	public FontHeader GetFontHeader()
+	{
+		if (fontHeader == null)
+		{
+			FontHeader h = new FontHeader();
+			h.init(_data, 0, _data.Length);
+			fontHeader = h;
+		}
+		return fontHeader;
+	}
+
+	
+	public int GetWeight()
+	{
+		return GetFontHeader().GetWeight();
+	}
+
+	
+	public bool IsItalic()
+	{
+		return GetFontHeader().isItalic();
+	}
+
+	public String GetTypeface()
+	{
+		return GetFontHeader().getFamilyName();
+	}
+
+	
+	public Object GetFontData()
+	{
+		return this;
+	}
+
+	
+	public override IDictionary<string, Func<object>> GetGenericProperties()
+	{
+		return (IDictionary<string, Func<object>>)GenericRecordUtil.GetGenericProperties("fontHeader", GetFontHeader);
+	}
+}
 }

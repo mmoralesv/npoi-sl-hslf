@@ -27,7 +27,7 @@ using static NPOI.HSLF.Model.TextPropCollection;
 
 namespace NPOI.HSLF.UserModel
 {
-	public class HSLFTextRun: TextRun
+	public class HSLFTextRun : TextRun
 	{
 		/** The TextRun we belong to */
 		private HSLFTextParagraph parentParagraph;
@@ -89,7 +89,7 @@ namespace NPOI.HSLF.UserModel
 		 * Fetch the text, in raw storage form
 		 */
 		//@Override
-	public String GetRawText()
+		public String GetRawText()
 		{
 			return _runText;
 		}
@@ -98,7 +98,7 @@ namespace NPOI.HSLF.UserModel
 		 * Change the text
 		 */
 		//@Override
-	public void SetText(String text)
+		public void SetText(String text)
 		{
 			if (text == null)
 			{
@@ -108,10 +108,10 @@ namespace NPOI.HSLF.UserModel
 			if (!newText.Equals(_runText))
 			{
 				_runText = newText;
-				if (HSLFSlideShow.GetLoadSavePhase() == HSLFSlideShow.LoadSavePhase.LOADED)
-				{
-					parentParagraph.SetDirty();
-				}
+				//if (HSLFSlideShow.GetLoadSavePhase() == HSLFSlideShow.LoadSavePhase.LOADED)
+				//{
+				//	parentParagraph.SetDirty();
+				//}
 			}
 		}
 
@@ -139,7 +139,7 @@ namespace NPOI.HSLF.UserModel
 			return prop != null && prop.GetSubValue(index);
 		}
 
-		private T GetMasterProp<T>() where T: TextProp
+		private T GetMasterProp<T>() where T : TextProp
 		{
 			int txtype = parentParagraph.GetRunType();
 			HSLFSheet sheet = parentParagraph.GetSheet();
@@ -190,37 +190,37 @@ namespace NPOI.HSLF.UserModel
 		// --------------- Friendly getters / setters on rich text properties -------
 
 		//@Override
-	public bool IsBold()
+		public bool IsBold()
 		{
 			return IsCharFlagsTextPropVal(CharFlagsTextProp.BOLD_IDX);
 		}
 
 		//@Override
-	public void SetBold(bool bold)
+		public void SetBold(bool bold)
 		{
 			SetCharFlagsTextPropVal(CharFlagsTextProp.BOLD_IDX, bold);
 		}
 
 		//@Override
-	public bool IsItalic()
+		public bool IsItalic()
 		{
 			return IsCharFlagsTextPropVal(CharFlagsTextProp.ITALIC_IDX);
 		}
 
 		//@Override
-	public void SetItalic(bool italic)
+		public void SetItalic(bool italic)
 		{
 			SetCharFlagsTextPropVal(CharFlagsTextProp.ITALIC_IDX, italic);
 		}
 
 		//@Override
-	public bool IsUnderlined()
+		public bool IsUnderlined()
 		{
 			return IsCharFlagsTextPropVal(CharFlagsTextProp.UNDERLINE_IDX);
 		}
 
 		//@Override
-	public void SetUnderlined(bool underlined)
+		public void SetUnderlined(bool underlined)
 		{
 			SetCharFlagsTextPropVal(CharFlagsTextProp.UNDERLINE_IDX, underlined);
 		}
@@ -258,13 +258,13 @@ namespace NPOI.HSLF.UserModel
 		}
 
 		//@Override
-	public bool IsStrikethrough()
+		public bool IsStrikethrough()
 		{
 			return IsCharFlagsTextPropVal(CharFlagsTextProp.STRIKETHROUGH_IDX);
 		}
 
 		//@Override
-	public void SetStrikethrough(bool flag)
+		public void SetStrikethrough(bool flag)
 		{
 			SetCharFlagsTextPropVal(CharFlagsTextProp.STRIKETHROUGH_IDX, flag);
 		}
@@ -291,7 +291,7 @@ namespace NPOI.HSLF.UserModel
 		}
 
 		//@Override
-	public Double GetFontSize()
+		public Double GetFontSize()
 		{
 			TextProp tp = GetTextParagraph().GetPropVal<TextProp>(characterStyle, "font.size");
 			return tp == null ? 0 : (double)tp.GetValue();
@@ -299,7 +299,7 @@ namespace NPOI.HSLF.UserModel
 
 
 		//@Override
-	public void SetFontSize(Double fontSize)
+		public void SetFontSize(Double fontSize)
 		{
 			int iFontSize = (fontSize == null) ? 0 : (int)fontSize;
 			SetCharTextPropVal("font.size", iFontSize);
@@ -323,32 +323,32 @@ namespace NPOI.HSLF.UserModel
 		}
 
 		//@Override
-	public void SetFontFamily(String typeface)
+		public void SetFontFamily(String typeface)
 		{
 			SetFontFamily(typeface, FontGroupEnum.LATIN);
 		}
 
 		//@Override
-	public void SetFontFamily(String typeface, FontGroupEnum fontGroup)
+		public void SetFontFamily(String typeface, FontGroupEnum fontGroup)
 		{
 			SetFontInfo(new HSLFFontInfo(typeface), fontGroup);
 		}
 
 		//@Override
-	public void SetFontInfo(FontInfo fontInfo, FontGroupEnum fontGroup)
+		public void SetFontInfo(FontInfo fontInfo, FontGroupEnum fontGroup)
 		{
 			FontGroupEnum fg = SafeFontGroup(fontGroup);
 
 			HSLFSheet sheet = parentParagraph.GetSheet();
 			//@SuppressWarnings("resource")
 
-		HSLFSlideShow slideShow = (sheet == null) ? null : sheet.GetSlideShow();
+			HSLFSlideShow slideShow = (sheet == null) ? null : sheet.GetSlideShow();
 			if (sheet == null || slideShow == null)
 			{
 				// we can't set font since slideshow is not assigned yet
 				if (cachedFontInfo == null)
 				{
-					cachedFontInfo = new HSLFFontInfo[Enum.GetValues(typeof( FontGroup)).Length];
+					cachedFontInfo = new HSLFFontInfo[Enum.GetValues(typeof(FontGroup)).Length];
 				}
 				cachedFontInfo[(int)fg] = (fontInfo != null) ? new HSLFFontInfo(fontInfo) : null;
 				return;
@@ -373,7 +373,7 @@ namespace NPOI.HSLF.UserModel
 
 
 			// Get the index for this font, if it is not to be removed (typeface == null)
-			Integer fontIdx = null;
+			int fontIdx = 0;
 			if (fontInfo != null)
 			{
 				fontIdx = slideShow.AddFont(fontInfo).getIndex();
@@ -385,27 +385,27 @@ namespace NPOI.HSLF.UserModel
 		}
 
 		//@Override
-	public String GetFontFamily()
+		public String GetFontFamily()
 		{
-			return GetFontFamily(null);
+			return GetFontFamily(FontGroupEnum.LATIN);
 		}
 
 		//@Override
-	public String GetFontFamily(FontGroupEnum fontGroup)
+		public String GetFontFamily(FontGroupEnum fontGroup)
 		{
 			HSLFFontInfo fi = GetFontInfo(fontGroup);
 			return (fi != null) ? fi.GetTypeface() : null;
 		}
 
 		//@Override
-	public HSLFFontInfo GetFontInfo(FontGroupEnum fontGroup)
+		public HSLFFontInfo GetFontInfo(FontGroupEnum fontGroup)
 		{
 			FontGroupEnum fg = SafeFontGroup(fontGroup);
 
 			HSLFSheet sheet = parentParagraph.GetSheet();
 			//@SuppressWarnings("resource")
 
-		HSLFSlideShow slideShow = (sheet == null) ? null : sheet.GetSlideShow();
+			HSLFSlideShow slideShow = (sheet == null) ? null : sheet.GetSlideShow();
 			if (sheet == null || slideShow == null)
 			{
 				return (cachedFontInfo != null) ? cachedFontInfo[(int)fg] : null;
@@ -435,16 +435,16 @@ namespace NPOI.HSLF.UserModel
 		 * @return font color as PaintStyle
 		 */
 		//@Override
-	//public SolidPaint GetFontColor()
-	//	{
-	//		TextProp tp = getTextParagraph().getPropVal(characterStyle, "font.color");
-	//		if (tp == null)
-	//		{
-	//			return null;
-	//		}
-	//		Color color = HSLFTextParagraph.getColorFromColorIndexStruct(tp.getValue(), parentParagraph.getSheet());
-	//		return DrawPaint.createSolidPaint(color);
-	//	}
+		//public SolidPaint GetFontColor()
+		//	{
+		//		TextProp tp = getTextParagraph().getPropVal(characterStyle, "font.color");
+		//		if (tp == null)
+		//		{
+		//			return null;
+		//		}
+		//		Color color = HSLFTextParagraph.getColorFromColorIndexStruct(tp.getValue(), parentParagraph.getSheet());
+		//		return DrawPaint.createSolidPaint(color);
+		//	}
 
 		/**
 		 * Sets color of the text, as a int bgr.
@@ -459,23 +459,23 @@ namespace NPOI.HSLF.UserModel
 
 
 		//@Override
-	//public void SetFontColor(Color color)
-	//	{
-	//		SetFontColor(DrawPaint.createSolidPaint(color));
-	//	}
+		//public void SetFontColor(Color color)
+		//	{
+		//		SetFontColor(DrawPaint.createSolidPaint(color));
+		//	}
 
 		//@Override
-	//public void SetFontColor(PaintStyle color)
-	//	{
-	//		if (!(color instanceof SolidPaint)) {
-	//			throw new IllegalArgumentException("HSLF only supports solid paint");
-	//		}
-	//		// In PowerPont RGB bytes are swapped, as BGR
-	//		SolidPaint sp = (SolidPaint)color;
-	//		Color c = DrawPaint.applyColorTransform(sp.getSolidColor());
-	//		int rgb = new Color(c.getBlue(), c.getGreen(), c.getRed(), 254).getRGB();
-	//		SetFontColor(rgb);
-	//	}
+		//public void SetFontColor(PaintStyle color)
+		//	{
+		//		if (!(color instanceof SolidPaint)) {
+		//			throw new IllegalArgumentException("HSLF only supports solid paint");
+		//		}
+		//		// In PowerPont RGB bytes are swapped, as BGR
+		//		SolidPaint sp = (SolidPaint)color;
+		//		Color c = DrawPaint.applyColorTransform(sp.getSolidColor());
+		//		int rgb = new Color(c.getBlue(), c.getGreen(), c.getRed(), 254).getRGB();
+		//		SetFontColor(rgb);
+		//	}
 
 		private void SetFlag(int index, bool value)
 		{
@@ -489,25 +489,25 @@ namespace NPOI.HSLF.UserModel
 		}
 
 		//@Override
-	public TextCap GetTextCap()
+		public TextCap GetTextCap()
 		{
 			return TextCap.NONE;
 		}
 
 		//@Override
-	public bool IsSubscript()
+		public bool IsSubscript()
 		{
 			return GetSuperscript() < 0;
 		}
 
 		//@Override
-	public bool IsSuperscript()
+		public bool IsSuperscript()
 		{
 			return GetSuperscript() > 0;
 		}
 
 		//@Override
-	public byte GetPitchAndFamily()
+		public byte GetPitchAndFamily()
 		{
 			return 0;
 		}
@@ -524,13 +524,13 @@ namespace NPOI.HSLF.UserModel
 		}
 
 		//@Override
-	public HSLFHyperlink GetHyperlink()
+		public HSLFHyperlink GetHyperlink()
 		{
 			return link;
 		}
 
 		//@Override
-	public HSLFHyperlink CreateHyperlink()
+		public HSLFHyperlink CreateHyperlink()
 		{
 			if (link == null)
 			{
@@ -541,7 +541,7 @@ namespace NPOI.HSLF.UserModel
 		}
 
 		//@Override
-	public FieldType GetFieldType()
+		public FieldType GetFieldType()
 		{
 			HSLFTextShape ts = GetTextParagraph().GetParentShape();
 			Placeholder ph = ts.GetPlaceholder();
@@ -559,8 +559,9 @@ namespace NPOI.HSLF.UserModel
 				}
 			}
 
-			Shape <object, object> ms = (ts.GetSheet() is MasterSheet) ? ts.GetMetroShape() : null;
-			if (ms is TextShape) {
+			Shape<object, object> ms = (ts.GetSheet() is MasterSheet) ? ts.GetMetroShape() : null;
+			if (ms is TextShape)
+			{
 				return Stream.of((TextShape <?,?>)ms).
 					flatMap(tsh-> ((List <? extends TextParagraph <?,?,? extends TextRun >>)tsh.GetTextParagraphs()).stream()).
 					flatMap(tph->tph.getTextRuns().stream()).
@@ -578,7 +579,7 @@ namespace NPOI.HSLF.UserModel
 		}
 
 		//@Override
-	public HSLFTextParagraph GetParagraph()
+		public HSLFTextParagraph GetParagraph()
 		{
 			return parentParagraph;
 		}

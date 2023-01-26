@@ -122,6 +122,6 @@ namespace NPOI.Common.UserModel.Fonts
 		 * @return the list of embedded EOT font data
 		 */
 		//@Beta
-		List<T> GetFacets<T>();
+		List<object> GetFacets();
 	}
 }

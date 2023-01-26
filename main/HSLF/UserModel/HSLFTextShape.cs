@@ -233,7 +233,7 @@ namespace NPOI.HSLF.UserModel
         if (sheet != null) {
             PPDrawing drawing = sheet.GetPPDrawing();
             if (drawing != null) {
-                EscherTextboxWrapper[] wrappers = drawing.getTextboxWrappers();
+                EscherTextboxWrapper[] wrappers = drawing.GetTextboxWrappers();
                 if (wrappers != null) {
                     foreach (EscherTextboxWrapper w in wrappers) {
                         // check for object identity

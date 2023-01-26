@@ -15,223 +15,254 @@
    limitations under the License.
 ==================================================================== */
 
-using NPOI.Common.UserModel;
-using NPOI.HSLF.Record;
-using NPOI.SL.UserModel;
+using NPOI.Common.UserModel.Fonts;
 using NPOI.Util;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
-namespace NPOI.HSLF.UserModel
+namespace NPOI.HSLF.Record
 {
+	public class HSLFFontInfo : FontInfo
+	{
+		public enum FontRenderType
+		{
+			raster, device, truetype
+		}
 
-    /**
-     * Represents a Font used in a presentation.<p>
-     * 
-     * In PowerPoint Font is a shared resource and can be shared among text object in the presentation.
-     * 
-     * @since POI 3.17-beta2
-     */
-    @SuppressWarnings("WeakerAccess")
-public class HSLFFontInfo implements FontInfo {
+		/** A bit that specifies whether a subset of this font is embedded. */
+		private static BitField FLAGS_EMBED_SUBSETTED = BitFieldFactory.GetInstance(0x01);
+		/** Bits that specifies whether the font is a raster,device or truetype font. */
+		private static BitField FLAGS_RENDER_FONTTYPE = BitFieldFactory.GetInstance(0x07);
+		/** A bit that specifies whether font substitution logic is not applied for this font. */
+		private static BitField FLAGS_NO_FONT_SUBSTITUTION = BitFieldFactory.GetInstance(0x08);
 
-    public enum FontRenderType {
-        raster, device, truetype
-    }
-    
-    /** A bit that specifies whether a subset of this font is embedded. */
-    private static BitField FLAGS_EMBED_SUBSETTED      = BitFieldFactory.getInstance(0x01);
-    /** Bits that specifies whether the font is a raster,device or truetype font. */
-    private static BitField FLAGS_RENDER_FONTTYPE      = BitFieldFactory.getInstance(0x07);
-    /** A bit that specifies whether font substitution logic is not applied for this font. */
-    private static BitField FLAGS_NO_FONT_SUBSTITUTION = BitFieldFactory.getInstance(0x08);
-    
-    private int index = -1;
-    private String typeface = "undefined";
-    private FontCharset charset = FontCharset.ANSI;
-    private FontRenderType renderType = FontRenderType.truetype;
-    private FontFamily family = FontFamily.FF_SWISS;
-    private FontPitch pitch = FontPitch.VARIABLE;
-    private boolean isSubsetted;
-    private boolean isSubstitutable = true;
-    private List<FontEmbeddedData> facets = new ArrayList<>();
-    private FontEntityAtom fontEntityAtom;
+		private int index = -1;
+		private String typeface = "undefined";
+		private FontCharset charset = FontCharset.ANSI;
+		private FontRenderType renderType = FontRenderType.truetype;
+		private FontFamilyEnum family = FontFamilyEnum.FF_SWISS;
+		private FontPitchEnum pitch = FontPitchEnum.VARIABLE;
+		private bool isSubsetted;
+		private bool isSubstitutable = true;
+		private List<FontEmbeddedData> facets = new List<FontEmbeddedData>();
+		private FontEntityAtom fontEntityAtom;
 
-    /**
-     * Creates a new instance of HSLFFontInfo with more or sensible defaults.<p>
-     * 
-     * If you don't use default fonts (see {@link HSLFFontInfoPredefined}) then the results
-     * of the font substitution will be better, if you also specify the other properties.
-     * 
-     * @param typeface the font name
-     */
-    public HSLFFontInfo(String typeface){
-        setTypeface(typeface);
-    }
+		/**
+		 * Creates a new instance of HSLFFontInfo with more or sensible defaults.<p>
+		 * 
+		 * If you don't use default fonts (see {@link HSLFFontInfoPredefined}) then the results
+		 * of the font substitution will be better, if you also specify the other properties.
+		 * 
+		 * @param typeface the font name
+		 */
+		public HSLFFontInfo(String typeface)
+		{
+			SetTypeface(typeface);
+		}
 
-    /**
-     * Creates a new instance of HSLFFontInfo and initialize it from the supplied font atom
-     */
-    public HSLFFontInfo(FontEntityAtom fontAtom){
-        fontEntityAtom = fontAtom;
-        setIndex(fontAtom.getFontIndex());
-        setTypeface(fontAtom.getFontName());
-        setCharset(FontCharset.valueOf(fontAtom.getCharSet()));
-        // assumption: the render type is exclusive
-        switch (FLAGS_RENDER_FONTTYPE.getValue(fontAtom.getFontType())) {
-        case 1:
-            setRenderType(FontRenderType.raster);
-            break;
-        case 2:
-            setRenderType(FontRenderType.device);
-            break;
-        default:
-        case 4:
-            setRenderType(FontRenderType.truetype);
-            break;
-        }
-        
-        byte pitchAndFamily = (byte)fontAtom.getPitchAndFamily();
-        setPitch(FontPitch.valueOfPitchFamily(pitchAndFamily));
-        setFamily(FontFamily.valueOfPitchFamily(pitchAndFamily));
-        setEmbedSubsetted(FLAGS_EMBED_SUBSETTED.isSet(fontAtom.getFontFlags()));
-        setFontSubstitutable(!FLAGS_NO_FONT_SUBSTITUTION.isSet(fontAtom.getFontType()));
-    }
+		/**
+		 * Creates a new instance of HSLFFontInfo and initialize it from the supplied font atom
+		 */
+		public HSLFFontInfo(FontEntityAtom fontAtom)
+		{
+			fontEntityAtom = fontAtom;
+			SetIndex(fontAtom.GetFontIndex());
+			SetTypeface(fontAtom.GetFontName());
+			SetCharset((FontCharset)(fontAtom.GetCharSet()));
+			// assumption: the render type is exclusive
+			switch (FLAGS_RENDER_FONTTYPE.GetValue(fontAtom.GetFontType()))
+			{
+				case 1:
+					SetRenderType(FontRenderType.raster);
+					break;
+				case 2:
+					SetRenderType(FontRenderType.device);
+					break;
+				default:
+				case 4:
+					SetRenderType(FontRenderType.truetype);
+					break;
+			}
 
-    public HSLFFontInfo(FontInfo fontInfo) {
-        // don't copy font index on copy constructor - it depends on the FontCollection this record is in
-        setTypeface(fontInfo.getTypeface());
-        setCharset(fontInfo.getCharset());
-        setFamily(fontInfo.getFamily());
-        setPitch(fontInfo.getPitch());
-        if (fontInfo instanceof HSLFFontInfo) {
-            HSLFFontInfo hFontInfo = (HSLFFontInfo)fontInfo;
-            setRenderType(hFontInfo.getRenderType());
-            setEmbedSubsetted(hFontInfo.isEmbedSubsetted());
-            setFontSubstitutable(hFontInfo.isFontSubstitutable());
-        }
-    }
-    
-    @Override
-    public Integer getIndex() {
-        return index;
-    }
+			byte pitchAndFamily = (byte)fontAtom.GetPitchAndFamily();
+			SetPitch(FontPitch.ValueOfPitchFamily(pitchAndFamily).GetNative());
+			SetFamily(FontFamily.ValueOfPitchFamily(pitchAndFamily).GetNative());
+			SetEmbedSubsetted(FLAGS_EMBED_SUBSETTED.IsSet(fontAtom.GetFontFlags()));
+			SetFontSubstitutable(!FLAGS_NO_FONT_SUBSTITUTION.IsSet(fontAtom.GetFontType()));
+		}
 
-    @Override
-    public void setIndex(int index) {
-        this.index = index;
-    }
+		public HSLFFontInfo(FontInfo fontInfo)
+		{
+			// don't copy font index on copy constructor - it depends on the FontCollection this record is in
+			SetTypeface(fontInfo.GetTypeface());
+			SetCharset(fontInfo.GetCharset());
+			SetFamily(fontInfo.GetFamily());
+			SetPitch(fontInfo.GetPitch());
+			if (fontInfo is HSLFFontInfo)
+			{
+				HSLFFontInfo hFontInfo = (HSLFFontInfo)fontInfo;
+				SetRenderType(hFontInfo.GetRenderType());
+				SetEmbedSubsetted(hFontInfo.IsEmbedSubsetted());
+				SetFontSubstitutable(hFontInfo.IsFontSubstitutable());
+			}
+		}
 
-    @Override
-    public String getTypeface(){
-        return typeface;
-    }
+		//@Override
+		public int GetIndex()
+		{
+			return index;
+		}
 
-    @Override
-    public void setTypeface(String typeface){
-        if (typeface == null || typeface.isEmpty()) {
-            throw new IllegalArgumentException("typeface can't be null nor empty");
-        }
-        this.typeface = typeface;
-    }
+		//@Override
+		public void SetIndex(int index)
+		{
+			this.index = index;
+		}
 
-    @Override
-    public void setCharset(FontCharset charset){
-        this.charset = (charset == null) ? FontCharset.ANSI : charset;
-    }
+		//@Override
+		public String GetTypeface()
+		{
+			return typeface;
+		}
 
-    @Override
-    public FontCharset getCharset(){
-        return charset;
-    }
-    
-    @Override
-    public FontFamily getFamily() {
-        return family;
-    }
+		//@Override
+		public void SetTypeface(String typeface)
+		{
+			if (typeface == null || string.IsNullOrEmpty(typeface))
+			{
+				throw new InvalidOperationException("typeface can't be null nor empty");
+			}
+			this.typeface = typeface;
+		}
 
-    @Override
-    public void setFamily(FontFamily family) {
-        this.family = (family == null) ? FontFamily.FF_SWISS : family;
-    }
-    
-    @Override
-    public FontPitch getPitch() {
-        return pitch;
-    }
+		//@Override
+		public void SetCharset(FontCharset charset)
+		{
+			this.charset = (charset == null) ? FontCharset.ANSI : charset;
+		}
 
-    @Override
-    public void setPitch(FontPitch pitch) {
-        this.pitch = (pitch == null) ? FontPitch.VARIABLE : pitch;
-        
-    }
+		//@Override
+		public FontCharset GetCharset()
+		{
+			return charset;
+		}
 
-    public FontRenderType getRenderType() {
-        return renderType;
-    }
+		//@Override
+		public FontFamilyEnum GetFamily()
+		{
+			return family;
+		}
 
-    public void setRenderType(FontRenderType renderType) {
-        this.renderType = (renderType == null) ? FontRenderType.truetype : renderType;
-    }
+		//@Override
+		public void SetFamily(FontFamilyEnum family)
+		{
+			this.family = (family == null) ? FontFamilyEnum.FF_SWISS : family;
+		}
 
-    public boolean isEmbedSubsetted() {
-        return isSubsetted;
-    }
+		//@Override
+		public FontPitchEnum GetPitch()
+		{
+			return pitch;
+		}
 
-    public void setEmbedSubsetted(boolean embedSubset) {
-        this.isSubsetted = embedSubset;
-    }
+		//@Override
+		public void SetPitch(FontPitchEnum pitch)
+		{
+			this.pitch = (pitch == null) ? FontPitchEnum.VARIABLE : pitch;
 
-    public boolean isFontSubstitutable() {
-        return this.isSubstitutable;
-    }
+		}
 
-    public void setFontSubstitutable(boolean isSubstitutable) {
-        this.isSubstitutable = isSubstitutable;
-    }
-    
-    public FontEntityAtom createRecord() {
-        assert(fontEntityAtom == null);
+		public FontRenderType GetRenderType()
+		{
+			return renderType;
+		}
 
-        FontEntityAtom fnt = new FontEntityAtom();
-        fontEntityAtom = fnt;
+		public void SetRenderType(FontRenderType renderType)
+		{
+			this.renderType = (renderType == null) ? FontRenderType.truetype : renderType;
+		}
 
-        fnt.setFontIndex(getIndex() << 4);
-        fnt.setFontName(getTypeface());
-        fnt.setCharSet(getCharset().getNativeId());
-        fnt.setFontFlags((byte)(isEmbedSubsetted() ? 1 : 0));
+		public bool IsEmbedSubsetted()
+		{
+			return isSubsetted;
+		}
 
-        int typeFlag;
-        switch (renderType) {
-        case device:
-            typeFlag = FLAGS_RENDER_FONTTYPE.setValue(0, 1);
-            break;
-        case raster:
-            typeFlag = FLAGS_RENDER_FONTTYPE.setValue(0, 2);
-            break;
-        default:
-        case truetype:
-            typeFlag = FLAGS_RENDER_FONTTYPE.setValue(0, 4);
-            break;
-        }
-        typeFlag = FLAGS_NO_FONT_SUBSTITUTION.setBoolean(typeFlag, isFontSubstitutable());
-        fnt.setFontType(typeFlag);
-        
-        fnt.setPitchAndFamily(FontPitch.getNativeId(pitch, family));
-        return fnt;
-    }
+		public void SetEmbedSubsetted(bool embedSubset)
+		{
+			this.isSubsetted = embedSubset;
+		}
 
-    public void addFacet(FontEmbeddedData facet) {
-        facets.add(facet);
-    }
+		public bool IsFontSubstitutable()
+		{
+			return this.isSubstitutable;
+		}
 
-    @Override
-    public List<FontEmbeddedData> getFacets() {
-        return facets;
-    }
+		public void SetFontSubstitutable(bool isSubstitutable)
+		{
+			this.isSubstitutable = isSubstitutable;
+		}
 
-    @Internal
-    public FontEntityAtom getFontEntityAtom() {
-        return fontEntityAtom;
-    }
+		public FontEntityAtom CreateRecord()
+		{
+			//assert(fontEntityAtom == null);
+
+			FontEntityAtom fnt = new FontEntityAtom();
+			fontEntityAtom = fnt;
+
+			fnt.SetFontIndex(GetIndex() << 4);
+			fnt.SetFontName(GetTypeface());
+			fnt.SetCharSet((int)GetCharset());
+			fnt.SetFontFlags((byte)(IsEmbedSubsetted() ? 1 : 0));
+
+			int typeFlag;
+			switch (renderType)
+			{
+				case FontRenderType.device:
+					typeFlag = FLAGS_RENDER_FONTTYPE.SetValue(0, 1);
+					break;
+				case FontRenderType.raster:
+					typeFlag = FLAGS_RENDER_FONTTYPE.SetValue(0, 2);
+					break;
+				default:
+				case FontRenderType.truetype:
+					typeFlag = FLAGS_RENDER_FONTTYPE.SetValue(0, 4);
+					break;
+			}
+			typeFlag = FLAGS_NO_FONT_SUBSTITUTION.SetBoolean(typeFlag, IsFontSubstitutable());
+			fnt.SetFontType(typeFlag);
+
+			fnt.SetPitchAndFamily(FontPitch.GetNativeId(new FontPitch((int)pitch), FontFamily.ValueOf((int)family)));
+			return fnt;
+		}
+
+		public void AddFacet(FontEmbeddedData facet)
+		{
+			facets.Add(facet);
+		}
+
+		//@Override
+		public List<object> GetFacets()
+		{
+			return facets.Select(item => (object)item).ToList();
+		}
+
+		//@Internal
+		public FontEntityAtom GetFontEntityAtom()
+		{
+			return fontEntityAtom;
+		}
+
+		public byte[] GetPanose()
+		{
+			throw new NotImplementedException();
+		}
+
+		public void SetPanose(byte[] panose)
+		{
+			throw new NotImplementedException();
+		}
+
+		
+	}
 }

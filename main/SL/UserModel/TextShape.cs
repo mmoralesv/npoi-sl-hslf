@@ -141,7 +141,7 @@ namespace NPOI.SL.UserModel
 	     * 
 	     * @since POI 3.14-Beta2
 	     */
-	    String getText();
+	    String GetText();
 	    
 	    /**
 	     * Sets (overwrites) the current text.
@@ -153,7 +153,7 @@ namespace NPOI.SL.UserModel
 	     * 
 	     * @return the last text run of the - potential split - text
 	     */
-	    TextRun setText(String text);
+	    TextRun SetText(String text);
 	
 	    /**
 	     * Adds the supplied text onto the end of the TextParagraphs,
@@ -165,31 +165,31 @@ namespace NPOI.SL.UserModel
 	     *
 	     * @since POI 3.14-Beta1
 	     */
-	    TextRun appendText(String text, bool newParagraph);
+	    TextRun AppendText(String text, bool newParagraph);
 	    
 	    /**
 	     * @return the TextParagraphs for this text box
 	     */
-	    List<P> getTextParagraphs();
+	    List<P> GetTextParagraphs();
 	
 	    /**
 	     * @return text shape margin
 	     */
-	    Insets2D getInsets();
+	    Insets2D GetInsets();
 	    
 	    /**
 	     * Sets the shape margins
 	     *
 	     * @param insets the new shape margins
 	     */
-	    void setInsets(Insets2D insets);
+	    void SetInsets(Insets2D insets);
 	
      /**
 	     * Compute the cumulative height occupied by the text
 	     * 
 	     * @return the cumulative height occupied by the text
 	     */
-	    double getTextHeight();
+	    double GetTextHeight();
 	
 	    /**
 	     * Compute the cumulative height occupied by the text
@@ -207,7 +207,7 @@ namespace NPOI.SL.UserModel
 	     *
 	     * @return the type of vertical alignment
 	     */
-	    VerticalAlignment getVerticalAlignment();
+	    VerticalAlignment GetVerticalAlignment();
 	
 	    /**
 	     * Sets the type of vertical alignment for the text.
@@ -215,7 +215,7 @@ namespace NPOI.SL.UserModel
 	     * @param vAlign - the type of alignment.
 	     * A {@code null} values unsets this property.
 	     */
-	    void setVerticalAlignment(VerticalAlignment vAlign);
+	    void SetVerticalAlignment(VerticalAlignment vAlign);
 	    
 	    /**
 	     * Returns if the text is centered.
@@ -225,7 +225,7 @@ namespace NPOI.SL.UserModel
 	     *
 	     * @return true, if the text anchor is horizontal centered
 	     */
-	    bool isHorizontalCentered();
+	    bool IsHorizontalCentered();
 	
 	    /**
 	     * Sets if the paragraphs are horizontal centered
@@ -233,28 +233,28 @@ namespace NPOI.SL.UserModel
 	     * @param isCentered true, if the paragraphs are horizontal centered
 	     * A {@code null} values unsets this property.
 	     */
-	    void setHorizontalCentered(bool isCentered);
+	    void SetHorizontalCentered(bool isCentered);
 	    
 	    /**
 	     * @return whether to wrap words within the bounding rectangle
 	     */
-	    bool getWordWrap();
+	    bool GetWordWrap();
 	
 	    /**
 	     * @param wrap whether to wrap words within the bounding rectangle
 	     */
-	    void setWordWrap(bool wrap);
+	    void SetWordWrap(bool wrap);
 	    
 	    /**
 	     * @return vertical orientation of the text
 	     */
-	    TextDirection getTextDirection();
+	    TextDirection GetTextDirection();
 	
 	    /**
 	     * sets the vertical orientation
 	     * @param orientation vertical orientation of the text
 	     */
-	    void setTextDirection(TextDirection orientation);
+	    void SetTextDirection(TextDirection orientation);
 	
 	    /**
 	     * The text rotation can be independent specified from the shape rotation.
@@ -262,7 +262,7 @@ namespace NPOI.SL.UserModel
 	     * 
 	     * @return text rotation in degrees, returns null if no rotation is given
 	     */
-	    double getTextRotation();
+	    double GetTextRotation();
 	    
 	    /**
 	     * Sets the text rotation.
@@ -270,17 +270,17 @@ namespace NPOI.SL.UserModel
 	     * 
 	     * @param rotation the text rotation, or null to unset the rotation
 	     */
-	    void setTextRotation(Double rotation);
+	    void SetTextRotation(Double rotation);
 	    
 	    /**
 	     * Sets the text placeholder
 	     */
-		void setTextPlaceholder(TextPlaceholder placeholder);
+		void SetTextPlaceholder(TextPlaceholder placeholder);
 	    
 	    /**
 	     * @return the text placeholder
 	     */
-	    TextPlaceholder getTextPlaceholder();
+	    TextPlaceholder GetTextPlaceholder();
 	    
 	    /**
 	     * Adjust the size of the shape so it encompasses the text inside it.

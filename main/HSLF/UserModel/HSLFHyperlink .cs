@@ -61,7 +61,7 @@ namespace NPOI.HSLF.UserModel
      *
      * @see HSLFSimpleShape#createHyperlink()
      */
-    /* package */ static HSLFHyperlink CreateHyperlink(HSLFSimpleShape shape) {
+    /* package */public static HSLFHyperlink CreateHyperlink(HSLFSimpleShape shape) {
         // TODO: check if a hyperlink already exists
         ExHyperlink exHyper = new ExHyperlink();
             ///TODO: Add CreateHyperlink functionality

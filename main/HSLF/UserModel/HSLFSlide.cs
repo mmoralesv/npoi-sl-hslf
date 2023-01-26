@@ -96,7 +96,7 @@ namespace NPOI.HSLF.UserModel
 		 *  references in the records to point to the new ID
 		 */
 		//@Override
-	public void setNotes(Notes<HSLFShape, HSLFTextParagraph> notes)
+	public void SetNotes(Notes<HSLFShape, HSLFTextParagraph> notes)
 		{
 			if (notes != null && !(notes is HSLFNotes)) {
 				throw new IllegalArgumentException("notes needs to be of type HSLFNotes");
@@ -201,7 +201,7 @@ namespace NPOI.HSLF.UserModel
 		 * @see TextHeaderAtom
 		 */
 		//@Override
-	public String getTitle()
+	public String GetTitle()
 		{
 			for (List<HSLFTextParagraph> tp : getTextParagraphs())
 			{
@@ -220,10 +220,10 @@ namespace NPOI.HSLF.UserModel
 		}
 
 		//@Override
-	public String getSlideName()
+	public String GetSlideName()
 		{
 			 CString name = (CString)getSlideRecord().findFirstOfType(RecordTypes.CString.typeID);
-			return name != null ? name.getText() : "Slide" + getSlideNumber();
+			return name != null ? name.getText() : "Slide" + GetSlideNumber();
 		}
 
 
@@ -237,7 +237,7 @@ namespace NPOI.HSLF.UserModel
 		 * Returns the (public facing) page number of this slide
 		 */
 		//@Override
-	public int getSlideNumber() { return _slideNo; }
+	public int GetSlideNumber() { return _slideNo; }
 
 		/**
 		 * Returns the underlying slide record

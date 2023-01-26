@@ -16,6 +16,7 @@
 ==================================================================== */
 
 using NPOI.Common.UserModel;
+using NPOI.HSLF.Model;
 using NPOI.HSLF.Record;
 using NPOI.SL.UserModel;
 using NPOI.Util;
@@ -33,5 +34,8 @@ namespace NPOI.HSLF.UserModel
 		}
 		public abstract TextPropCollection GetPropCollection(int txtype, int v, string pn, bool isChar);
 		
+
+		
+
 	}
 }
