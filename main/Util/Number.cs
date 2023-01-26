@@ -72,6 +72,22 @@ namespace NPOI.Util
             return (int)_value;
         }
 
+        public float GetFloatValue()
+        {
+            return (float)_value;
+        }
+
+        public double GetDoubleValue()
+        {
+            return (double)_value;
+        }
+
+        public long GetLongValue()
+        {
+            return (long)_value;
+        }
+
+
 		public double DoubleValue()
 		{
             return (double)_value;

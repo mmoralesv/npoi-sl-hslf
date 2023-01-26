@@ -150,7 +150,7 @@ namespace NPOI.HSLF.Record
 			new Dictionary<int, RecordTypes>()
 			{
 				{ 0, new RecordTypes(0, null) },
-				{ -1, new RecordTypes(-1, HSLF.Record.UnknownRecordPlaceholder.GetInstance) },
+				{ -1, new RecordTypes(-1, ()=>HSLF.Record.UnknownRecordPlaceholder.GetInstance()) },
 				{1000, new RecordTypes(1000, new Document) },
 				{1001, new RecordTypes(1001, new DocumentAtom) },
 				{1002, new RecordTypes(1002, null) },
@@ -176,7 +176,7 @@ namespace NPOI.HSLF.Record
 				{1031, new RecordTypes(1031,null) },
 				{1032, new RecordTypes(1032,null) },
 				{1033, new RecordTypes(1033, new ExObjList) },
-				{1034, new RecordTypes(1034, new ExObjListAtom) },
+				{1034, new RecordTypes(1034, () => new ExObjListAtom()) },
 				{1035, new RecordTypes(1035, new PPDrawingGroup) },
 				{1036, new RecordTypes(1036, new PPDrawing) },
 				{1040, new RecordTypes(1040,null) },
@@ -286,12 +286,12 @@ namespace NPOI.HSLF.Record
 				{12004, new RecordTypes(12004,null) },
 				{12005, new RecordTypes(12005,null) },
 				// Records ~12050 seem to be related to Document Encryption
-				{12052, new RecordTypes(12052, new DocumentEncryptionAtom) }
+				{12052, new RecordTypes(12052, () => new DocumentEncryptionAtom()) }
 			};
 		public short typeID;
-		public RecordConstructor<Record> RecordConstructor { get; }
+		public Func<Record> RecordConstructor { get; }
 
-		public RecordTypes(int typeID, RecordConstructor<Record> recordConstructor)
+		public RecordTypes(int typeID, Func<Record> recordConstructor)
 		{
 			this.typeID = (short)typeID;
 			this.RecordConstructor = recordConstructor;

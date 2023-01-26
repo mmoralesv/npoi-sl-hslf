@@ -5,7 +5,7 @@ namespace NPOI.HPSF
 {
     public class ClipboardData
     {
-        //private static final POILogger logger = POILogFactory
+        //private static POILogger logger = POILogFactory
         //    .getLogger( ClipboardData.class );
 
         private int _format;

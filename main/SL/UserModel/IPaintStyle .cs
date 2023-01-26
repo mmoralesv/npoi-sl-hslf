@@ -8,7 +8,7 @@ namespace NPOI.SL.UserModel
 {
 	/**
 	     * The PaintStyle can be modified by secondary sources, e.g. the attributes in the preset shapes.
-	     * These modifications need to be taken into account when the final color is determined.
+	     * These modifications need to be taken into account when the color is determined.
 	     */
 	public enum PaintModifier
 	{

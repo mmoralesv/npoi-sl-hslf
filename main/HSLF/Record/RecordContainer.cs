@@ -27,7 +27,7 @@ namespace NPOI.HSLF.Record
 		 * We're not an atom
 		 */
 		//@Override
-		public bool isAnAtom() { return false; }
+		public override bool IsAnAtom() { return false; }
 
 
 		/* ===============================================================

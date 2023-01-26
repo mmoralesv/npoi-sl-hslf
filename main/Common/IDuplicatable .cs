@@ -24,7 +24,7 @@ namespace NPOI.Common
 
 	public interface IDuplicatable<T>
 	{
-		// Providing a generics interface Duplicatable<T extends Duplicatable<T>> pushes too many
+		// Providing a generics interface Duplicatable<T : Duplicatable<T>> pushes too many
 	    // changes to the implementing classes and the benefit of providing a subtype-specific copy method
 	    // is not sufficient
 	    /**

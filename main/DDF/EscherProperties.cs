@@ -332,6 +332,9 @@ namespace NPOI.DDF
 	    public const short GROUPSHAPE__1DADJUSTMENT = 957;
 	    public const short GROUPSHAPE__HIDDEN = 958;
 	    public const short GROUPSHAPE__PRINT = 959;
+
+	    public const short OPT = unchecked((short)0xf00b);
+	    public const short USER_DEFINED = unchecked((short)0xf122);
         #endregion
 
         private static Hashtable properties;

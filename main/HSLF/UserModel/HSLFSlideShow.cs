@@ -476,7 +476,7 @@ private void findMasterSlides()
 }
     }
 
-    @Override
+    
 	public void write(OutputStream out) throws IOException
 {
         // check for text paragraph modifications
@@ -541,7 +541,7 @@ private void writeDirtyParagraphs(HSLFShapeContainer container)
 /**
  * Returns an array of all the normal Slides found in the slideshow
  */
-@Override
+
 	public List<HSLFSlide> getSlides()
 {
 	return _slides;
@@ -558,7 +558,6 @@ public List<HSLFNotes> getNotes()
 /**
  * Returns an array of all the normal Slide Masters found in the slideshow
  */
-@Override
 	public List<HSLFSlideMaster> getSlideMasters()
 {
 	return _masters;
@@ -572,7 +571,7 @@ public List<HSLFTitleMaster> getTitleMasters()
 	return _titleMasters;
 }
 
-@Override
+
 	public List<HSLFPictureData> getPictureData()
 {
 	return _hslfSlideShow.getPictureData();
@@ -596,7 +595,7 @@ public HSLFSoundData[] getSoundData()
 	return HSLFSoundData.find(_documentRecord);
 }
 
-@Override
+
 	public Dimension getPageSize()
 {
 	DocumentAtom docatom = _documentRecord.getDocumentAtom();
@@ -605,7 +604,7 @@ public HSLFSoundData[] getSoundData()
 	return new Dimension(pgx, pgy);
 }
 
-@Override
+
 	public void setPageSize(Dimension pgsize)
 {
 	DocumentAtom docatom = _documentRecord.getDocumentAtom();
@@ -780,7 +779,7 @@ return removedSlide;
      *
      * @return the created {@code Slide}
      */
-    @Override
+    
 	public HSLFSlide createSlide()
 {
 	// We need to add the records to the SLWT that deals
@@ -844,7 +843,7 @@ slide.setMasterSheet(_masters.get(0));
 return slide;
     }
 
-    @Override
+    
 	public HSLFPictureData addPicture(byte[] data, PictureType format) throws IOException
 {
         if (format == null || format.nativeId == -1) {
@@ -887,7 +886,7 @@ return slide;
  * @return the picture data.
  * @since 3.15 beta 2
  */
-@Override
+
 	public HSLFPictureData addPicture(InputStream is, PictureType format) throws IOException
 {
         if (format == null || format.nativeId == -1) { // fail early
@@ -907,7 +906,7 @@ return slide;
  * @return the picture data.
  * @since 3.15 beta 2
  */
-@Override
+
 	public HSLFPictureData addPicture(File pict, PictureType format) throws IOException
 {
         if (format == null || format.nativeId == -1) { // fail early
@@ -928,7 +927,7 @@ return addPicture(data, format);
      * @return {@code null} if picture data is not found in this slideshow
      * @since 3.15 beta 3
      */
-    @Override
+    
 	public HSLFPictureData findPictureData(byte[] pictureData)
 {
 	byte[] uid = HSLFPictureData.getChecksum(pictureData);
@@ -962,7 +961,7 @@ return null;
  *
  * @since POI 4.1.0
  */
-@Override
+
 	public HSLFFontInfo addFont(InputStream fontData) throws IOException
 {
 	Document doc = getDocumentRecord();
@@ -993,7 +992,7 @@ public int getNumberOfFonts()
 	return getDocumentRecord().getEnvironment().getFontCollection().getNumberOfFonts();
 }
 
-@Override
+
 	public List<HSLFFontInfo> getFonts()
 {
 	return getDocumentRecord().getEnvironment().getFontCollection().getFonts();
@@ -1157,7 +1156,7 @@ eeAtom.setObjID(objectId);
 return objectId;
     }
 
-    @Override
+    
 	public HPSFPropertiesExtractor getMetadataTextExtractor()
 {
 	return new HPSFPropertiesExtractor(getSlideShowImpl());
@@ -1231,7 +1230,7 @@ private int addPersistentObject(PositionDependentRecord slideRecord)
 	return psrId;
 }
 
-@Override
+
 	public MasterSheet<HSLFShape, HSLFTextParagraph> createMasterSheet()
 {
 	// TODO implement or throw exception if not supported
@@ -1247,19 +1246,19 @@ private int addPersistentObject(PositionDependentRecord slideRecord)
 	return _hslfSlideShow;
 }
 
-@Override
+
 	public void close() throws IOException
 {
 	_hslfSlideShow.close();
 }
 
-@Override
+
 	public Object getPersistDocument()
 {
 	return getSlideShowImpl();
 }
 
-@Override
+
 	public Map<String, Supplier<?>> getGenericProperties()
 {
 	return GenericRecordUtil.getGenericProperties(
@@ -1268,115 +1267,115 @@ private int addPersistentObject(PositionDependentRecord slideRecord)
 	);
 }
 
-@Override
-	public List<? extends GenericRecord> getGenericChildren()
+
+	public List<? : GenericRecord> getGenericChildren()
 {
 	return Arrays.asList(_hslfSlideShow.getRecords());
 }
 
-@Override
+
 	public void write() throws IOException
 {
 	getSlideShowImpl().write();
 }
 
-@Override
+
 	public void write(File newFile) throws IOException
 {
 	getSlideShowImpl().write(newFile);
 }
 
-@Override
+
 	public DocumentSummaryInformation getDocumentSummaryInformation()
 {
 	return getSlideShowImpl().getDocumentSummaryInformation();
 }
 
-@Override
+
 	public SummaryInformation getSummaryInformation()
 {
 	return getSlideShowImpl().getSummaryInformation();
 }
 
-@Override
+
 	public void createInformationProperties()
 {
 	getSlideShowImpl().createInformationProperties();
 }
 
-@Override
+
 	public void readProperties()
 {
 	getSlideShowImpl().readProperties();
 }
 
-@Override
+
 	protected PropertySet getPropertySet(String setName) throws IOException
 {
         return getSlideShowImpl().getPropertySetImpl(setName);
 }
 
-@Override
+
 	protected PropertySet getPropertySet(String setName, EncryptionInfo encryptionInfo) throws IOException
 {
         return getSlideShowImpl().getPropertySetImpl(setName, encryptionInfo);
 }
 
-@Override
+
 	protected void writeProperties() throws IOException
 {
 	getSlideShowImpl().writePropertiesImpl();
 }
 
-@Override
+
 	public void writeProperties(POIFSFileSystem outFS) throws IOException
 {
 	getSlideShowImpl().writeProperties(outFS);
 }
 
-@Override
+
 	protected void writeProperties(POIFSFileSystem outFS, List<String> writtenEntries) throws IOException
 {
 	getSlideShowImpl().writePropertiesImpl(outFS, writtenEntries);
 }
 
-@Override
+
 	protected void validateInPlaceWritePossible() throws IllegalStateException
 {
 	getSlideShowImpl().validateInPlaceWritePossibleImpl();
 }
 
-@Override
+
 	public DirectoryNode getDirectory()
 {
 	return getSlideShowImpl().getDirectory();
 }
 
-@Override
+
 	protected void clearDirectory()
 {
 	getSlideShowImpl().clearDirectoryImpl();
 }
 
-@Override
+
 	protected boolean initDirectory()
 {
 	return getSlideShowImpl().initDirectoryImpl();
 }
 
-@Override
+
 	protected void replaceDirectory(DirectoryNode newDirectory) throws IOException
 {
 	getSlideShowImpl().replaceDirectoryImpl(newDirectory);
 }
 
-@Override
+
 	protected String getEncryptedPropertyStreamName()
 {
 	return getSlideShowImpl().getEncryptedPropertyStreamName();
 }
 
-@Override
+
 	public EncryptionInfo getEncryptionInfo()
 {
 	return getSlideShowImpl().getEncryptionInfo();

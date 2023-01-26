@@ -27,7 +27,7 @@ namespace NPOI.SS.Util
          * and<br/>
          * "A=B" is "FALSE" but "A-B" is "0"<br/>
          * <br/>
-         * This rule (for rounding the result of a final addition or subtraction), has not been
+         * This rule (for rounding the result of a addition or subtraction), has not been
          * implemented in POI (as of Jul-2009).
          *
          * @return <code>negative, 0, or positive</code> according to the standard Excel comparison

@@ -213,7 +213,7 @@ namespace NPOI.HPSF
                          */
                         // l1 = LittleEndian.getInt(src, o1); o1 += LittleEndian.INT_SIZE;
                         // }
-                        // final byte[] v = new byte[l1];
+                        // byte[] v = new byte[l1];
                         // System.arraycopy(src, o1, v, 0, v.length);
                         // value = v;
                         // break;
