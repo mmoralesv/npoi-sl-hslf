@@ -14,15 +14,18 @@
    See the License for the specific language governing permissions and
    limitations under the License.
 ==================================================================== */
-using NPOI.Common;
-using NPOI.Common.UserModel;
-using NPOI.SL.UserModel;
-using NPOI.Util;
-using System;
-using System.Collections.Generic;
+
 
 namespace NPOI.HSLF.Model
 {
+	using NPOI.Common;
+	using NPOI.Common.UserModel;
+	using NPOI.SL.UserModel;
+	using NPOI.Util;
+	using System;
+	using System.Collections.Generic;
+	using NPOI.HSLF.Record;
+	
 	public class HSLFTabStop: TabStop, IDuplicatable<HSLFTabStop>, GenericRecord
 	{
 		/**
@@ -129,12 +132,22 @@ namespace NPOI.HSLF.Model
 		}
 
 		//@Override
+		public RecordTypes GetGenericRecordType()
+		{
+			throw new NotImplementedException();
+		}
+
 		public IDictionary<string, Func<T>> GetGenericProperties<T>()
 		{
 			return (IDictionary<string, Func<T>>)GenericRecordUtil.GetGenericProperties(
 				"type", GetType,
 				"position", ()=> GetPosition()
 			);
+		}
+
+		public IList<GenericRecord> GetGenericChildren()
+		{
+			throw new NotImplementedException();
 		}
 	}
 }
