@@ -26,135 +26,163 @@ namespace NPOI.HSLF.Record
      * An atomic record containing information about a comment.
      */
 
-    public class Comment2000Atom : RecordAtom {
+    public class Comment2000Atom : RecordAtom
+    {
 
-    /**
+        /**
      * Record header.
      */
-    private byte[] _header;
+        private byte[] _header;
 
-    /**
+        /**
      * Record data.
      */
-    private byte[] _data;
+        private byte[] _data;
 
-    /**
+        /**
      * Constructs a brand new comment atom record.
      */
-    protected Comment2000Atom() {
-        _header = new byte[8];
-        _data = new byte[28];
+        public Comment2000Atom()
+        {
+            _header = new byte[8];
+            _data = new byte[28];
 
-        LittleEndian.putShort(_header, 2, (short)getRecordType());
-        LittleEndian.putInt(_header, 4, _data.length);
+            LittleEndian.PutShort(_header, 2, (short)GetRecordType());
+            LittleEndian.PutInt(_header, 4, _data.Length);
 
-        // It is fine for the other values to be zero
-    }
+            // It is fine for the other values to be zero
+        }
 
-    /**
+        /**
      * Constructs the comment atom record from its source data.
      *
      * @param source the source data as a byte array.
      * @param start the start offset into the byte array.
      * @param len the length of the slice in the byte array.
      */
-    protected Comment2000Atom(byte[] source, int start, int len) {
-        // Get the header.
-        _header = Arrays.copyOfRange(source, start, start+8);
+        protected Comment2000Atom(byte[] source, int start, int len)
+        {
+            // Get the header.
+            _header = Arrays.CopyOfRange(source, start, start + 8);
 
-        // Get the record data.
-        _data = IOUtils.safelyClone(source, start+8, len-8, getMaxRecordLength());
-    }
+            // Get the record data.
+            _data = IOUtils.SafelyClone(source, start + 8, len - 8, GetMaxRecordLength());
+        }
 
-    /**
+        /**
      * Gets the comment number (note - each user normally has their own count).
      * @return the comment number.
      */
-    public int getNumber() {
-        return LittleEndian.getInt(_data,0);
-    }
+        public int GetNumber()
+        {
+            return LittleEndian.GetInt(_data, 0);
+        }
 
-    /**
+        /**
      * Sets the comment number (note - each user normally has their own count).
      * @param number the comment number.
      */
-    public void setNumber(int number) {
-        LittleEndian.putInt(_data,0,number);
-    }
+        public void SetNumber(int number)
+        {
+            LittleEndian.PutInt(_data, 0, number);
+        }
 
-    /**
+        /**
      * Gets the date the comment was made.
      * @return the comment date.
      */
-    public Date getDate() {
-        return SystemTimeUtils.getDate(_data,4);
-    }
+        public DateTime GetDate()
+        {
+            //return SystemTimeUtils.getDate(_data, 4);
+            return new DateTime();
+        }
 
-    /**
+        /**
      * Sets the date the comment was made.
      * @param date the comment date.
      */
-    public void setDate(Date date) {
-        SystemTimeUtils.storeDate(date, _data, 4);
-    }
+        public void SetDate(DateTime date)
+        {
+            //SystemTimeUtils.storeDate(date, _data, 4);
+        }
 
-    /**
+        /**
      * Gets the X offset of the comment on the page.
      * @return the X offset.
      */
-    public int getXOffset() {
-        return LittleEndian.getInt(_data,20);
-    }
+        public int GetXOffset()
+        {
+            return LittleEndian.GetInt(_data, 20);
+        }
 
-    /**
+        /**
      * Sets the X offset of the comment on the page.
      * @param xOffset the X offset.
      */
-    public void setXOffset(int xOffset) {
-        LittleEndian.putInt(_data,20,xOffset);
-    }
+        public void SetXOffset(int xOffset)
+        {
+            LittleEndian.PutInt(_data, 20, xOffset);
+        }
 
-    /**
+        /**
      * Gets the Y offset of the comment on the page.
      * @return the Y offset.
      */
-    public int getYOffset() {
-        return LittleEndian.getInt(_data,24);
-    }
+        public int GetYOffset()
+        {
+            return LittleEndian.GetInt(_data, 24);
+        }
 
-    /**
+        /**
      * Sets the Y offset of the comment on the page.
      * @param yOffset the Y offset.
      */
-    public void setYOffset(int yOffset) {
-        LittleEndian.putInt(_data,24,yOffset);
-    }
+        public void SetYOffset(int yOffset)
+        {
+            LittleEndian.PutInt(_data, 24, yOffset);
+        }
 
-    /**
+        /**
      * Gets the record type.
      * @return the record type.
      */
-    public long getRecordType() { return RecordTypes.Comment2000Atom.typeID; }
+        public override long GetRecordType()
+        {
+            return RecordTypes.Comment2000Atom.typeID;
+        }
 
-    /**
+        /**
      * Write the contents of the record back, so it can be written
      * to disk
      *
      * @param out the output stream to write to.
      * @throws IOException if an error occurs.
      */
-    public void writeOut(OutputStream out) throws IOException {
-        out.write(_header);
-        out.write(_data);
-    }
+        public override void WriteOut(OutputStream outputStream)
+        {
+            try
+            {
+                outputStream.Write(_header);
+                outputStream.Write(_data);
+            }
+            catch (Exception e)
+            {
+                throw new IOException();
+            }
+        }
 
-    @Override
-    public Map<String, Supplier<?>> getGenericProperties() {
-        return GenericRecordUtil.getGenericProperties(
-            "number", this::getNumber,
-            "date", this::getDate,
-            "xOffset", this::getXOffset,
-            "yOffset", this::getYOffset
-        );
+        // public Map<String, Supplier<?>> getGenericProperties() {
+        //     return GenericRecordUtil.getGenericProperties(
+        //         "number", this::getNumber,
+        //         "date", this::getDate,
+        //         "xOffset", this::getXOffset,
+        //         "yOffset", this::getYOffset
+        //     );
+        // }
+
+        public override IDictionary<string, Func<object>> GetGenericProperties()
+        {
+            throw new NotImplementedException();
+        }
     }
 }
