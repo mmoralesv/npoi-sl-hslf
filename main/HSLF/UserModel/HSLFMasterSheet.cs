@@ -14,26 +14,23 @@
    See the License for the specific language governing permissions and
    limitations under the License.
 ==================================================================== */
-
-using NPOI.Common.UserModel;
-using NPOI.HSLF.Record;
-using NPOI.SL.UserModel;
-using NPOI.Util;
-using System;
-using System.Collections.Generic;
-
 namespace NPOI.HSLF.UserModel
 {
+    using NPOI.HSLF.Record;
+    using NPOI.SL.UserModel;
+    using System;
+    using NPOI.HSLF.Model;
 
     /**
      * The superclass of all master sheets - Slide masters, Notes masters, etc.
      */
-    public abstract class HSLFMasterSheet : HSLFSheet implements MasterSheet<HSLFShape,HSLFTextParagraph> {
-    public HSLFMasterSheet(SheetContainer container, int sheetNo){
-        super(container, sheetNo);
-    }
+    public abstract class HSLFMasterSheet : HSLFSheet, MasterSheet<HSLFShape, HSLFTextParagraph>
+    {
+        public HSLFMasterSheet(SheetContainer container, int sheetNo) : base(container, sheetNo)
+        {
+        }
 
-    /**
+        /**
      * Find the master collection for the given txtype/level/name.
      * This is the "workhorse" which returns the default style attributes.
      * If {@code name = "*"} return the current collection, otherwise if the name is not found
@@ -46,6 +43,6 @@ namespace NPOI.HSLF.UserModel
      * @param name the property name, 
      * @param isCharacter if {@code true} use character styles, otherwise use paragraph styles
      */
-    public abstract TextPropCollection getPropCollection(int txtype, int level, String name, boolean isCharacter);
-
+        public abstract TextPropCollection GetPropCollection(int txtype, int level, String name, bool isCharacter);
+    }
 }
