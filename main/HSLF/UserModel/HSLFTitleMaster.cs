@@ -15,65 +15,68 @@
    limitations under the License.
 ==================================================================== */
 
-using NPOI.Common.UserModel;
-using NPOI.HSLF.Record;
-using NPOI.SL.UserModel;
-using NPOI.Util;
-using System;
-using System.Collections.Generic;
-
 namespace NPOI.HSLF.UserModel
 {
+    using Record;
+    using System;
+    using System.Collections.Generic;
+    using Model;
 
     /**
      * Title masters define the design template for slides with a Title Slide layout.
      */
-    public class HSLFTitleMaster : HSLFMasterSheet {
-    private List<List<HSLFTextParagraph>> _paragraphs = new ArrayList<>();
+    public class HSLFTitleMaster : HSLFMasterSheet
+    {
+        private List<List<HSLFTextParagraph>> _paragraphs = new List<List<HSLFTextParagraph>>();
 
-    /**
+        /**
      * Constructs a TitleMaster
      *
      */
-    public HSLFTitleMaster(org.apache.poi.hslf.record.Slide record, int sheetNo) {
-        super(record, sheetNo);
-
-        for (List<HSLFTextParagraph> l : HSLFTextParagraph.findTextParagraphs(getPPDrawing(), this)) {
-            if (!_paragraphs.contains(l)) {
-                _paragraphs.add(l);
+        public HSLFTitleMaster(Slide record, int sheetNo) : base(record, sheetNo)
+        {
+            foreach (List<HSLFTextParagraph> l in HSLFTextParagraph.findTextParagraphs(GetPPDrawing(), this))
+            {
+                if (!_paragraphs.Contains(l))
+                {
+                    _paragraphs.Add(l);
+                }
             }
         }
-    }
 
-    /**
+        /**
      * Returns an array of all the TextRuns found
      */
-    @Override
-    public List<List<HSLFTextParagraph>> getTextParagraphs() {
-        return _paragraphs;
-    }
+        public override List<List<HSLFTextParagraph>> GetTextParagraphs()
+        {
+            return _paragraphs;
+        }
 
-    /**
+        /**
      * Delegate the call to the underlying slide master.
      */
-    @Override
-    public TextPropCollection getPropCollection(final int txtype, int level, String name, boolean isCharacter) {
-        HSLFMasterSheet master = getMasterSheet();
-        return (master == null) ? null : master.getPropCollection(txtype, level, name, isCharacter);
-    }
-    
-    /**
+        public override TextPropCollection GetPropCollection(int txtype, int level, String name, bool isCharacter)
+        {
+            HSLFMasterSheet master = GetMasterSheet();
+            return (master == null) ? null : master.GetPropCollection(txtype, level, name, isCharacter);
+        }
+
+        /**
      * Returns the slide master for this title master.
      */
-    @Override
-    public HSLFMasterSheet getMasterSheet(){
-        SlideAtom sa = ((org.apache.poi.hslf.record.Slide)getSheetContainer()).getSlideAtom();
-        int masterId = sa.getMasterID();
-        for (HSLFSlideMaster sm : getSlideShow().getSlideMasters()) {
-            if (masterId == sm._getSheetNumber()) {
-                return sm;
+        public override HSLFMasterSheet GetMasterSheet()
+        {
+            SlideAtom sa = ((Slide)GetSheetContainer()).getSlideAtom();
+            int masterId = sa.getMasterID();
+            foreach (HSLFSlideMaster sm in GetSlideShow().GetSlideMasters())
+            {
+                if (masterId == sm._getSheetNumber())
+                {
+                    return sm;
+                }
             }
+
+            return null;
         }
-        return null;
     }
 }
