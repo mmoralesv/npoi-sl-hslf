@@ -163,7 +163,7 @@ namespace NPOI.HSSF.EventUserModel
             }
 
             // If we've just finished with the cells, then fire the
-            // final dummy end-of-row record
+            // dummy end-of-row record
             if (lastCellRow != -1 && lastCellColumn != -1 && thisRow == -1)
             {
                 childListener.ProcessRecord(new LastCellOfRowDummyRecord(lastCellRow, lastCellColumn));

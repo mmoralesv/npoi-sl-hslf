@@ -15,12 +15,18 @@
    limitations under the License.
 ==================================================================== */
 
+using NPOI.DDF;
 using NPOI.HSLF.Exceptions;
+using NPOI.HSLF.Model;
+using NPOI.HSLF.Record;
 using NPOI.SL.UserModel;
 using NPOI.SS.Formula.Functions;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
+using static NPOI.HSLF.Record.SlideAtomLayout;
+using static NPOI.HSLF.Record.SlideListWithText;
 
 namespace NPOI.HSLF.UserModel
 {
@@ -31,6 +37,9 @@ namespace NPOI.HSLF.UserModel
 		private  List<List<HSLFTextParagraph>> _paragraphs = new List<List<HSLFTextParagraph>>();
 		private HSLFNotes _notes; // usermodel needs to set this
 
+		public MasterSheet<HSLFShape, HSLFTextParagraph> MasterSheet { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+		public MasterSheet<HSLFShape, HSLFTextParagraph> SlideLayout { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+
 		/**
 		 * Constructs a Slide from the Slide record, and the SlideAtomsSet
 		 *  containing the text.
@@ -40,7 +49,7 @@ namespace NPOI.HSLF.UserModel
 		 * @param notes the Notes sheet attached to us
 		 * @param atomSet the SlideAtomsSet to get the text from
 		 */
-		public HSLFSlide(org.apache.poi.hslf.record.Slide slide, HSLFNotes notes, SlideAtomsSet atomSet, int slideIdentifier, int slideNumber)
+		public HSLFSlide(Record.Slide slide, HSLFNotes notes, SlideAtomsSet atomSet, int slideIdentifier, int slideNumber)
 			:base(slide, slideIdentifier)
 		{
 			_notes = notes;
@@ -50,7 +59,7 @@ namespace NPOI.HSLF.UserModel
 			// For the text coming in from the SlideAtomsSet:
 			// Build up TextRuns from pairs of TextHeaderAtom and
 			//  one of TextBytesAtom or TextCharsAtom
-			if (_atomSet != null && _atomSet.getSlideRecords().length > 0)
+			if (_atomSet != null && _atomSet.getSlideRecords().Length > 0)
 			{
 				// Grab text from SlideListWithTexts entries
 				_paragraphs.AddRange(HSLFTextParagraph.FindTextParagraphs(_atomSet.getSlideRecords()));
@@ -96,10 +105,10 @@ namespace NPOI.HSLF.UserModel
 		 *  references in the records to point to the new ID
 		 */
 		//@Override
-	public void setNotes(Notes<HSLFShape, HSLFTextParagraph> notes)
+	public void SetNotes(Notes<HSLFShape, HSLFTextParagraph> notes)
 		{
 			if (notes != null && !(notes is HSLFNotes)) {
-				throw new IllegalArgumentException("notes needs to be of type HSLFNotes");
+				throw new ArgumentException("notes needs to be of type HSLFNotes");
 			}
 			_notes = (HSLFNotes)notes;
 
@@ -137,57 +146,57 @@ namespace NPOI.HSLF.UserModel
 		 * </ul>
 		 */
 		//@Override
-	public void onCreate()
-		{
-			//initialize drawing group id
-			EscherDggRecord dgg = getSlideShow().getDocumentRecord().getPPDrawingGroup().getEscherDggRecord();
-			EscherContainerRecord dgContainer = getSheetContainer().getPPDrawing().getDgContainer();
-			EscherDgRecord dg = HSLFShape.getEscherChild(dgContainer, EscherDgRecord.RECORD_ID);
-			int dgId = dgg.getMaxDrawingGroupId() + 1;
-			dg.setOptions((short)(dgId << 4));
-			dgg.setDrawingsSaved(dgg.getDrawingsSaved() + 1);
+	//public void onCreate()
+	//	{
+	//		//initialize drawing group id
+	//		EscherDggRecord dgg = GetSlideShow().getDocumentRecord().GetPPDrawingGroup().getEscherDggRecord();
+	//		EscherContainerRecord dgContainer = GetSheetContainer().GetPPDrawing().getDgContainer();
+	//		EscherDgRecord dg = (EscherDgRecord)HSLFShape.GetEscherChild(dgContainer, EscherDgRecord.RECORD_ID);
+	//		int dgId = dgg.getMaxDrawingGroupId() + 1;
+	//		dg.setOptions((short)(dgId << 4));
+	//		dgg.setDrawingsSaved(dgg.getDrawingsSaved() + 1);
 
-			for (EscherContainerRecord c : dgContainer.getChildContainers())
-			{
-				EscherSpRecord spr = null;
-				switch (EscherRecordTypes.forTypeID(c.getRecordId()))
-				{
-					case SPGR_CONTAINER:
-						EscherContainerRecord dc = (EscherContainerRecord)c.getChild(0);
-						spr = dc.getChildById(EscherSpRecord.RECORD_ID);
-						break;
-					case SP_CONTAINER:
-						spr = c.getChildById(EscherSpRecord.RECORD_ID);
-						break;
-					default:
-						break;
-				}
-				if (spr != null)
-				{
-					spr.setShapeId(allocateShapeId());
-				}
-			}
+	//		for (EscherContainerRecord c : dgContainer.getChildContainers())
+	//		{
+	//			EscherSpRecord spr = null;
+	//			switch (EscherRecordTypes.forTypeID(c.getRecordId()))
+	//			{
+	//				case SPGR_CONTAINER:
+	//					EscherContainerRecord dc = (EscherContainerRecord)c.getChild(0);
+	//					spr = dc.getChildById(EscherSpRecord.RECORD_ID);
+	//					break;
+	//				case SP_CONTAINER:
+	//					spr = c.getChildById(EscherSpRecord.RECORD_ID);
+	//					break;
+	//				default:
+	//					break;
+	//			}
+	//			if (spr != null)
+	//			{
+	//				spr.setShapeId(allocateShapeId());
+	//			}
+	//		}
 
-			//PPT doen't increment the number of saved shapes for group descriptor and background
-			dg.setNumShapes(1);
-		}
+	//		//PPT doen't increment the number of saved shapes for group descriptor and background
+	//		dg.setNumShapes(1);
+	//	}
 
 		/**
 		 * Create a {@code TextBox} object that represents the slide's title.
 		 *
 		 * @return {@code TextBox} object that represents the slide's title.
 		 */
-		public HSLFTextBox addTitle()
-		{
-			HSLFPlaceholder pl = new HSLFPlaceholder();
-			pl.setShapeType(ShapeType.RECT);
-			pl.setPlaceholder(Placeholder.TITLE);
-			pl.setRunType(TextPlaceholder.TITLE.nativeId);
-			pl.setText("Click to edit title");
-			pl.setAnchor(new java.awt.Rectangle(54, 48, 612, 90));
-			addShape(pl);
-			return pl;
-		}
+		//public HSLFTextBox addTitle()
+		//{
+		//	HSLFPlaceholder pl = new HSLFPlaceholder();
+		//	pl.setShapeType(ShapeType.RECT);
+		//	pl.setPlaceholder(Placeholder.TITLE);
+		//	pl.setRunType(TextPlaceholder.TITLE.nativeId);
+		//	pl.setText("Click to edit title");
+		//	pl.setAnchor(new java.awt.Rectangle(54, 48, 612, 90));
+		//	addShape(pl);
+		//	return pl;
+		//}
 
 
 		// Complex Accesser methods follow
@@ -201,15 +210,15 @@ namespace NPOI.HSLF.UserModel
 		 * @see TextHeaderAtom
 		 */
 		//@Override
-	public String getTitle()
+	public String GetTitle()
 		{
-			for (List<HSLFTextParagraph> tp : getTextParagraphs())
+			foreach (List<HSLFTextParagraph> tp in getTextParagraphs())
 			{
-				if (tp.isEmpty())
+				if (tp.Count==0)
 				{
 					continue;
 				}
-				int type = tp.get(0).getRunType();
+				int type = tp.ElementAt(0).GetRunType();
 				if (TextPlaceholder.isTitle(type))
 				{
 					String str = HSLFTextParagraph.GetRawText(tp);
@@ -220,10 +229,10 @@ namespace NPOI.HSLF.UserModel
 		}
 
 		//@Override
-	public String getSlideName()
+	public String GetSlideName()
 		{
-			 CString name = (CString)getSlideRecord().findFirstOfType(RecordTypes.CString.typeID);
-			return name != null ? name.getText() : "Slide" + getSlideNumber();
+			 CString name = (CString)getSlideRecord().FindFirstOfType(RecordTypes.CString.typeID);
+			return name != null ? name.GetText() : "Slide" + GetSlideNumber();
 		}
 
 
@@ -237,14 +246,14 @@ namespace NPOI.HSLF.UserModel
 		 * Returns the (public facing) page number of this slide
 		 */
 		//@Override
-	public int getSlideNumber() { return _slideNo; }
+	public int GetSlideNumber() { return _slideNo; }
 
 		/**
 		 * Returns the underlying slide record
 		 */
-		public org.apache.poi.hslf.record.Slide getSlideRecord()
+		public Record.Slide getSlideRecord()
 		{
-			return (org.apache.poi.hslf.record.Slide)getSheetContainer();
+			return (Record.Slide)GetSheetContainer();
 		}
 
 		/**
@@ -263,14 +272,14 @@ namespace NPOI.HSLF.UserModel
 	public HSLFMasterSheet getMasterSheet()
 		{
 			int masterId = getSlideRecord().getSlideAtom().getMasterID();
-			for (HSLFSlideMaster sm : getSlideShow().getSlideMasters())
+			foreach (HSLFSlideMaster sm in GetSlideShow().getSlideMasters())
 			{
 				if (masterId == sm._getSheetNumber())
 				{
 					return sm;
 				}
 			}
-			for (HSLFTitleMaster tm : getSlideShow().getTitleMasters())
+			foreach (HSLFTitleMaster tm in GetSlideShow().getTitleMasters())
 			{
 				if (masterId == tm._getSheetNumber())
 				{
@@ -297,7 +306,7 @@ namespace NPOI.HSLF.UserModel
 		 * {@code false} otherwise
 		 */
 		//@Override
-	public void setFollowMasterBackground(boolean flag)
+	public void setFollowMasterBackground(bool flag)
 		{
 			SlideAtom sa = getSlideRecord().getSlideAtom();
 			sa.setFollowMasterBackground(flag);
@@ -310,7 +319,7 @@ namespace NPOI.HSLF.UserModel
 		 * {@code false} otherwise
 		 */
 		//@Override
-	public boolean getFollowMasterBackground()
+	public bool getFollowMasterBackground()
 		{
 			SlideAtom sa = getSlideRecord().getSlideAtom();
 			return sa.getFollowMasterBackground();
@@ -323,7 +332,7 @@ namespace NPOI.HSLF.UserModel
 		 * {@code false} otherwise
 		 */
 		//@Override
-	public void setFollowMasterObjects(boolean flag)
+	public void setFollowMasterObjects(bool flag)
 		{
 			SlideAtom sa = getSlideRecord().getSlideAtom();
 			sa.setFollowMasterObjects(flag);
@@ -335,7 +344,7 @@ namespace NPOI.HSLF.UserModel
 		 * @return {@code true} if the slide follows master color scheme,
 		 * {@code false} otherwise
 		 */
-		public boolean getFollowMasterScheme()
+		public bool getFollowMasterScheme()
 		{
 			SlideAtom sa = getSlideRecord().getSlideAtom();
 			return sa.getFollowMasterScheme();
@@ -347,7 +356,7 @@ namespace NPOI.HSLF.UserModel
 		 * @param flag  {@code true} if the slide draws master color scheme,
 		 * {@code false} otherwise
 		 */
-		public void setFollowMasterScheme(boolean flag)
+		public void setFollowMasterScheme(bool flag)
 		{
 			SlideAtom sa = getSlideRecord().getSlideAtom();
 			sa.setFollowMasterScheme(flag);
@@ -360,7 +369,7 @@ namespace NPOI.HSLF.UserModel
 		 * {@code false} otherwise
 		 */
 		//@Override
-	public boolean getFollowMasterObjects()
+	public bool getFollowMasterObjects()
 		{
 			SlideAtom sa = getSlideRecord().getSlideAtom();
 			return sa.getFollowMasterObjects();
@@ -375,9 +384,9 @@ namespace NPOI.HSLF.UserModel
 			if (getFollowMasterBackground())
 			{
 				 HSLFMasterSheet ms = getMasterSheet();
-				return (ms == null) ? null : ms.getBackground();
+				return (ms == null) ? null : ms.GetBackground();
 			}
-			return super.getBackground();
+			return base.GetBackground();
 		}
 
 		/**
@@ -389,18 +398,18 @@ namespace NPOI.HSLF.UserModel
 			if (getFollowMasterScheme())
 			{
 				 HSLFMasterSheet ms = getMasterSheet();
-				return (ms == null) ? null : ms.getColorScheme();
+				return (ms == null) ? null : ms.GetColorScheme();
 			}
-			return super.getColorScheme();
+			return base.GetColorScheme();
 		}
 
-		private static RecordContainer selectContainer( RecordContainer root,  int index,  RecordTypes... path)
+		private static RecordContainer selectContainer( RecordContainer root,  int index,  params RecordTypes[] path)
 		{
-			if (root == null || index >= path.length)
+			if (root == null || index >= path.Length)
 			{
 				return root;
 			}
-			 RecordContainer newRoot = (RecordContainer)root.findFirstOfType(path[index].typeID);
+			 RecordContainer newRoot = (RecordContainer)root.FindFirstOfType(path[index].typeID);
 			return selectContainer(newRoot, index + 1, path);
 		}
 
@@ -413,19 +422,19 @@ namespace NPOI.HSLF.UserModel
 		//@Override
 	public List<HSLFComment> getComments()
 		{
-			 List<HSLFComment> comments = new ArrayList<>();
+			List<HSLFComment> comments = new List<HSLFComment>();
 			// If there are any, they're in
 			//  ProgTags -> ProgBinaryTag -> BinaryTagData
 			 RecordContainer binaryTags =
-					selectContainer(getSheetContainer(), 0,
+					selectContainer(GetSheetContainer(), 0,
 							RecordTypes.ProgTags, RecordTypes.ProgBinaryTag, RecordTypes.BinaryTagData);
 
 			if (binaryTags != null)
 			{
-				for ( org.apache.poi.hslf.record.Record record : binaryTags.getChildRecords())
+				foreach ( Record.Record record in binaryTags.GetChildRecords())
 				{
-					if (record instanceof Comment2000) {
-					comments.add(new HSLFComment((Comment2000)record));
+					if (record is Comment2000) {
+					comments.Add(new HSLFComment((Comment2000)record));
 				}
 			}
 		}
@@ -448,116 +457,116 @@ namespace NPOI.HSLF.UserModel
 	protected void onAddTextShape(HSLFTextShape shape)
 	{
 		List<HSLFTextParagraph> newParas = shape.getTextParagraphs();
-		_paragraphs.add(newParas);
+		_paragraphs.Add(newParas);
 	}
 
 	/** This will return an atom per TextBox, so if the page has two text boxes the method should return two atoms. */
 	public StyleTextProp9Atom[] getNumberedListInfo()
 	{
-		return this.getPPDrawing().getNumberedListInfo();
+		return this.GetPPDrawing().getNumberedListInfo();
 	}
 
 	public EscherTextboxWrapper[] getTextboxWrappers()
 	{
-		return this.getPPDrawing().getTextboxWrappers();
+		return this.GetPPDrawing().GetTextboxWrappers();
 	}
 
 	//@Override
-	public void setHidden(boolean hidden)
+	public void setHidden(bool hidden)
 	{
-		org.apache.poi.hslf.record.Slide cont = getSlideRecord();
+		Record.Slide cont = getSlideRecord();
 
 		SSSlideInfoAtom slideInfo =
-			(SSSlideInfoAtom)cont.findFirstOfType(RecordTypes.SSSlideInfoAtom.typeID);
+			(SSSlideInfoAtom)cont.FindFirstOfType(RecordTypes.SSSlideInfoAtom.typeID);
 		if (slideInfo == null)
 		{
 			slideInfo = new SSSlideInfoAtom();
-			cont.addChildAfter(slideInfo, cont.findFirstOfType(RecordTypes.SlideAtom.typeID));
+			cont.AddChildAfter(slideInfo, cont.FindFirstOfType(RecordTypes.SlideAtom.typeID));
 		}
 
 		slideInfo.setEffectTransitionFlagByBit(SSSlideInfoAtom.HIDDEN_BIT, hidden);
 	}
 
 	//@Override
-	public boolean isHidden()
+	public bool isHidden()
 	{
 		SSSlideInfoAtom slideInfo =
-			(SSSlideInfoAtom)getSlideRecord().findFirstOfType(RecordTypes.SSSlideInfoAtom.typeID);
+			(SSSlideInfoAtom)getSlideRecord().FindFirstOfType(RecordTypes.SSSlideInfoAtom.typeID);
 		return (slideInfo != null) && slideInfo.getEffectTransitionFlagByBit(SSSlideInfoAtom.HIDDEN_BIT);
 	}
 
 	//@Override
-	public void draw(Graphics2D graphics)
-	{
-		DrawFactory drawFact = DrawFactory.getInstance(graphics);
-		Drawable draw = drawFact.getDrawable(this);
-		draw.draw(graphics);
-	}
+	//public void draw(Graphics2D graphics)
+	//{
+	//	DrawFactory drawFact = DrawFactory.getInstance(graphics);
+	//	Drawable draw = drawFact.getDrawable(this);
+	//	draw.draw(graphics);
+	//}
 
 	//@Override
-	public boolean getFollowMasterColourScheme()
+	public bool getFollowMasterColourScheme()
 	{
 		return false;
 	}
 
 	//@Override
-	public void setFollowMasterColourScheme(boolean follow)
+	public void setFollowMasterColourScheme(bool follow)
 	{
 	}
 
 	//@Override
-	public boolean getFollowMasterGraphics()
+	public bool getFollowMasterGraphics()
 	{
 		return getFollowMasterObjects();
 	}
 
-	//@Override
-	public boolean getDisplayPlaceholder( Placeholder placeholder)
-	{
-		 HeadersFooters hf = getHeadersFooters();
-		 SlideLayoutType slt = getSlideRecord().getSlideAtom().getSSlideLayoutAtom().getGeometryType();
-		 boolean isTitle =
-			(slt == SlideLayoutType.TITLE_SLIDE || slt == SlideLayoutType.TITLE_ONLY || slt == SlideLayoutType.MASTER_TITLE);
-		switch (placeholder)
-		{
-			case DATETIME:
-				return (hf.isDateTimeVisible() && (hf.isTodayDateVisible() || (hf.isUserDateVisible() && hf.getUserDateAtom() != null))) && !isTitle;
-			case SLIDE_NUMBER:
-				return hf.isSlideNumberVisible() && !isTitle;
-			case HEADER:
-				return hf.isHeaderVisible() && hf.getHeaderAtom() != null && !isTitle;
-			case FOOTER:
-				return hf.isFooterVisible() && hf.getFooterAtom() != null && !isTitle;
-			default:
-				return false;
-		}
-	}
+	//TODO: Fix SlideAtomLayout
+	//public bool getDisplayPlaceholder( Placeholder placeholder)
+	//{
+	//	 HeadersFooters hf = getHeadersFooters();
+	//	 SlideLayoutType slt = getSlideRecord().getSlideAtom().getSSlideLayoutAtom().getGeometryType();
+	//	 bool isTitle =
+	//		(slt == SlideLayoutType.TITLE_SLIDE || slt == SlideLayoutType.TITLE_ONLY || slt == SlideLayoutType.MASTER_TITLE);
+	//	switch (placeholder)
+	//	{
+	//		case DATETIME:
+	//			return (hf.isDateTimeVisible() && (hf.isTodayDateVisible() || (hf.isUserDateVisible() && hf.getUserDateAtom() != null))) && !isTitle;
+	//		case SLIDE_NUMBER:
+	//			return hf.isSlideNumberVisible() && !isTitle;
+	//		case HEADER:
+	//			return hf.isHeaderVisible() && hf.getHeaderAtom() != null && !isTitle;
+	//		case FOOTER:
+	//			return hf.isFooterVisible() && hf.getFooterAtom() != null && !isTitle;
+	//		default:
+	//			return false;
+	//	}
+	//}
 
 	//@Override
-	public boolean getDisplayPlaceholder( SimpleShape<?,?> placeholderRef)
-	{
-		Placeholder placeholder = placeholderRef.getPlaceholder();
-		if (placeholder == null)
-		{
-			return false;
-		}
+	//public bool getDisplayPlaceholder( SimpleShape<?,?> placeholderRef)
+	//{
+	//	Placeholder placeholder = placeholderRef.getPlaceholder();
+	//	if (placeholder == null)
+	//	{
+	//		return false;
+	//	}
 
-		 HeadersFooters hf = getHeadersFooters();
-		 SlideLayoutType slt = getSlideRecord().getSlideAtom().getSSlideLayoutAtom().getGeometryType();
-		 boolean isTitle =
-			(slt == SlideLayoutType.TITLE_SLIDE || slt == SlideLayoutType.TITLE_ONLY || slt == SlideLayoutType.MASTER_TITLE);
-		switch (placeholder)
-		{
-			case HEADER:
-				return hf.isHeaderVisible() && hf.getHeaderAtom() != null && !isTitle;
-			case FOOTER:
-				return hf.isFooterVisible() && hf.getFooterAtom() != null && !isTitle;
-			case DATETIME:
-			case SLIDE_NUMBER:
-			default:
-				return false;
-		}
-	}
+	//	 HeadersFooters hf = getHeadersFooters();
+	//	 SlideLayoutType slt = getSlideRecord().getSlideAtom().getSSlideLayoutAtom().getGeometryType();
+	//	 bool isTitle =
+	//		(slt == SlideLayoutType.TITLE_SLIDE || slt == SlideLayoutType.TITLE_ONLY || slt == SlideLayoutType.MASTER_TITLE);
+	//	switch (placeholder)
+	//	{
+	//		case HEADER:
+	//			return hf.isHeaderVisible() && hf.getHeaderAtom() != null && !isTitle;
+	//		case FOOTER:
+	//			return hf.isFooterVisible() && hf.getFooterAtom() != null && !isTitle;
+	//		case DATETIME:
+	//		case SLIDE_NUMBER:
+	//		default:
+	//			return false;
+	//	}
+	//}
 
 	//@Override
 	public HSLFMasterSheet getSlideLayout()
@@ -566,5 +575,60 @@ namespace NPOI.HSLF.UserModel
 		// getSlideRecord().getSlideAtom().getSSlideLayoutAtom().getGeometryType()
 		return getMasterSheet();
 	}
-}
+
+		List<Comment> Slide<HSLFShape, HSLFTextParagraph>.getComments()
+		{
+			throw new NotImplementedException();
+		}
+
+		Notes<HSLFShape, HSLFTextParagraph> Slide<HSLFShape, HSLFTextParagraph>.GetNotes()
+		{
+			throw new NotImplementedException();
+		}
+
+		public bool GetFollowMasterBackground()
+		{
+			throw new NotImplementedException();
+		}
+
+		public void SetFollowMasterBackground(bool follow)
+		{
+			throw new NotImplementedException();
+		}
+
+		public bool GetFollowMasterColourScheme()
+		{
+			throw new NotImplementedException();
+		}
+
+		public void SetFollowMasterColourScheme(bool follow)
+		{
+			throw new NotImplementedException();
+		}
+
+		public bool GetFollowMasterObjects()
+		{
+			throw new NotImplementedException();
+		}
+
+		public void SetFollowMasterObjects(bool follow)
+		{
+			throw new NotImplementedException();
+		}
+
+		public bool GetDisplayPlaceholder(SimpleShape<HSLFShape, HSLFTextParagraph> placeholderRefShape)
+		{
+			throw new NotImplementedException();
+		}
+
+		public void SetHidden(bool hidden)
+		{
+			throw new NotImplementedException();
+		}
+
+		public bool IsHidden()
+		{
+			throw new NotImplementedException();
+		}
+	}
 }

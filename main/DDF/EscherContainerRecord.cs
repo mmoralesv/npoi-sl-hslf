@@ -196,9 +196,9 @@ namespace NPOI.DDF
         {
             return _childRecords.Remove(toBeRemoved);
         }
-        public List<EscherRecord>.Enumerator GetChildIterator()
+        public IReadOnlyList<EscherRecord> GetChildIterator()
         {
-            return _childRecords.GetEnumerator();
+            return _childRecords;
         }
         /// <summary>
         /// Returns all of our children which are also

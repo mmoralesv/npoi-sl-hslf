@@ -15,11 +15,13 @@
    limitations under the License.
 ==================================================================== */
 using NPOI.DDF;
+using NPOI.HSLF.Record;
 using NPOI.SL.UserModel;
 using NPOI.Util;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Linq;
 using System.Text;
 
 namespace NPOI.HSLF.UserModel
@@ -73,15 +75,15 @@ namespace NPOI.HSLF.UserModel
 		/**
 		 * Create and assign the lower level escher record to this shape
 		 */
-		protected EscherContainerRecord createSpContainer(bool isChild)
-		{
-			if (_escherContainer == null)
-			{
-				_escherContainer = new EscherContainerRecord();
-				_escherContainer.SetOptions((short)15);
-			}
-			return _escherContainer;
-		}
+		//protected EscherContainerRecord createSpContainer(bool isChild)
+		//{
+		//	if (_escherContainer == null)
+		//	{
+		//		_escherContainer = new EscherContainerRecord();
+		//		_escherContainer.SetOptions((short)15);
+		//	}
+		//	return _escherContainer;
+		//}
 
 		/**
 		 *  @return the parent of this shape
@@ -98,10 +100,10 @@ namespace NPOI.HSLF.UserModel
 		//@Override
 		public String GetShapeName()
 		{
-			 EscherComplexProperty ep = getEscherProperty(getEscherOptRecord(), EscherProperties.GROUPSHAPE__SHAPENAME);
+			EscherComplexProperty ep = GetEscherOptRecord().GetEscherProperty(EscherProperties.GROUPSHAPE__SHAPENAME) as EscherComplexProperty;
 			if (ep != null)
 			{
-				 byte[] cd = ep.GetComplexData();
+				byte[] cd = ep.ComplexData;
 				return StringUtil.GetFromUnicodeLE0Terminated(cd, 0, cd.Length / 2);
 			}
 			else
@@ -112,15 +114,15 @@ namespace NPOI.HSLF.UserModel
 
 		public ShapeType GetShapeType()
 		{
-			EscherSpRecord spRecord = GetEscherChild(EscherSpRecord.RECORD_ID);
-			return ShapeType.forId(spRecord.GetShapeType(), false);
+			EscherSpRecord spRecord = GetEscherChild(EscherSpRecord.RECORD_ID) as EscherSpRecord;
+			return ShapeType.forId(spRecord.ShapeType, false);
 		}
 
 		public void SetShapeType(ShapeType type)
 		{
-			EscherSpRecord spRecord = GetEscherChild(EscherSpRecord.RECORD_ID);
-			spRecord.SetShapeType((short)type.nativeId);
-			spRecord.SetVersion((short)0x2);
+			EscherSpRecord spRecord = GetEscherChild(EscherSpRecord.RECORD_ID) as EscherSpRecord;
+			spRecord.ShapeType = (short)type.nativeId;
+			spRecord.Version = 0x2;
 		}
 
 		/**
@@ -212,11 +214,11 @@ namespace NPOI.HSLF.UserModel
 		 */
 		public  void MoveTo(double x, double y)
 		{
-			// This convenience method should be implemented via setAnchor in subclasses
-			// see HSLFGroupShape.setAnchor() for a reference
-			Rectangle2D anchor = getAnchor();
-			anchor.setRect(x, y, anchor.getWidth(), anchor.getHeight());
-			setAnchor(anchor);
+			//// This convenience method should be implemented via setAnchor in subclasses
+			//// see HSLFGroupShape.setAnchor() for a reference
+			//Rectangle2D anchor = getAnchor();
+			//anchor.setRect(x, y, anchor.getWidth(), anchor.getHeight());
+			//setAnchor(anchor);
 		}
 
 		/**
@@ -224,170 +226,14 @@ namespace NPOI.HSLF.UserModel
 		 *
 		 * @return escher record or {@code null} if not found.
 		 */
-		public static T GetEscherChild<T>(EscherContainerRecord owner, int recordId)where T: EscherRecord
+		public static EscherRecord GetEscherChild(EscherContainerRecord owner, int recordId)
 		{
 			return owner.GetChildById((short)recordId);
 		}
 
-		/**
-		 * @since POI 3.14-Beta2
-		 */
-		public static T GetEscherChild<T>(EscherContainerRecord owner, EscherRecordTypes recordId)where T:EscherRecord
-		{
-			return GetEscherChild(owner, recordId.typeID);
-		}
-
-		public T GetEscherChild<T>(int recordId) where T: EscherRecord
+		public EscherRecord GetEscherChild(int recordId)
 		{
 			return _escherContainer.GetChildById((short)recordId);
-		}
-
-		/**
-		 * @since POI 3.14-Beta2
-		 */
-		public T GetEscherChild<T>(EscherRecordTypes recordId)where T: EscherRecord
-		{
-			return GetEscherChild(recordId.typeID);
-		}
-
-		/**
-		 * Returns  escher property by id.
-		 *
-		 * @return escher property or {@code null} if not found.
-		 *
-		 * @deprecated use {@link #getEscherProperty(EscherPropertyTypes)} instead
-		 */
-		//@Deprecated
-		//@Removal(version = "5.0.0")
-
-		public static T GetEscherProperty<T>(AbstractEscherOptRecord opt, int propId)where T: EscherProperty
-		{
-			return (T)((opt == null) ? null : opt.Lookup(propId));
-		}
-
-		/**
-		 * Returns  escher property by type.
-		 *
-		 * @return escher property or {@code null} if not found.
-		 */
-		public static T GetEscherProperty<T>(AbstractEscherOptRecord opt, EscherPropertyTypes type) where T: EscherProperty
-		{
-			return (opt == null) ? null : opt.Lookup(type);
-		}
-
-		/**
-		 * Set an escher property for this shape.
-		 *
-		 * @param opt       The opt record to set the properties to.
-		 * @param propId    The id of the property. One of the constants defined in EscherOptRecord.
-		 * @param value     value of the property. If value = -1 then the property is removed.
-		 *
-		 * @deprecated use {@link #setEscherProperty(AbstractEscherOptRecord, EscherPropertyTypes, int)}
-		 */
-		//@Deprecated
-		//@Removal(version = "5.0.0")
-
-		public static void SetEscherProperty(AbstractEscherOptRecord opt, short propId, int value)
-		{
-			List<EscherProperty> props = opt.GetEscherProperties();
-			for (IEnumerator<EscherProperty> iterator = props.GetEnumerator(); iterator.MoveNext();)
-			{
-				if (iterator.Current.GetPropertyNumber() == propId)
-				{
-					//iterator.remove;
-					break;
-				}
-			}
-			if (value != -1)
-			{
-				opt.AddEscherProperty(new EscherSimpleProperty(propId, value));
-				opt.SortProperties();
-			}
-		}
-
-		/**
-		 * Set an escher property for this shape.
-		 *
-		 * @param opt       The opt record to set the properties to.
-		 * @param propType  The type of the property.
-		 * @param value     value of the property. If value = -1 then the property is removed.
-		 */
-		public static void SetEscherProperty(AbstractEscherOptRecord opt, EscherPropertyTypes propType, int value)
-		{
-			SetEscherProperty(opt, propType, false, value);
-		}
-
-		public static void SetEscherProperty(AbstractEscherOptRecord opt, EscherPropertyTypes propType, bool isBlipId, int value)
-		{
-			List<EscherProperty> props = opt.GetEscherProperties();
-			for (IEnumerator<EscherProperty> iterator = props.GetEnumerator(); iterator.MoveNext();)
-			{
-				if (iterator.Current.GetPropertyNumber() == propType.propNumber)
-				{
-					//iterator.remove();
-					break;
-				}
-			}
-			if (value != -1)
-			{
-				opt.AddEscherProperty(new EscherSimpleProperty(propType, false, isBlipId, value));
-				opt.SortProperties();
-			}
-		}
-
-
-
-		/**
-		 * Set an simple escher property for this shape.
-		 *
-		 * @param propId    The id of the property. One of the constants defined in EscherOptRecord.
-		 * @param value     value of the property. If value = -1 then the property is removed.
-		 *
-		 * @deprecated use {@link #setEscherProperty(EscherPropertyTypes, int)}
-		 */
-		//@Deprecated
-		//@Removal(version = "5.0.0")
-
-		public void SetEscherProperty(short propId, int value)
-		{
-			AbstractEscherOptRecord opt = GetEscherOptRecord();
-			SetEscherProperty(opt, propId, value);
-		}
-
-		/**
-		 * Set an simple escher property for this shape.
-		 *
-		 * @param propType  The type of the property.
-		 * @param value     value of the property. If value = -1 then the property is removed.
-		 */
-		public void SetEscherProperty(EscherPropertyTypes propType, int value)
-		{
-			AbstractEscherOptRecord opt = GetEscherOptRecord();
-			SetEscherProperty(opt, propType, value);
-		}
-
-		/**
-		 * Get the value of a simple escher property for this shape.
-		 *
-		 * @param propId    The id of the property. One of the constants defined in EscherOptRecord.
-		 */
-		public int GetEscherProperty(short propId)
-		{
-			AbstractEscherOptRecord opt = GetEscherOptRecord();
-			EscherSimpleProperty prop = GetEscherProperty(opt, propId);
-			return prop == null ? 0 : prop.GetPropertyValue();
-		}
-
-		/**
-		 * Get the value of a simple escher property for this shape.
-		 *
-		 * @param propType    The type of the property. One of the constants defined in EscherOptRecord.
-		 */
-		public int GetEscherProperty(EscherPropertyTypes propType)
-		{
-			AbstractEscherOptRecord opt = GetEscherOptRecord();
-			EscherSimpleProperty prop = GetEscherProperty(opt, propType);
-			return prop == null ? 0 : prop.GetPropertyValue();
 		}
 
 		/**
@@ -399,24 +245,12 @@ namespace NPOI.HSLF.UserModel
 		 */
 		//@Deprecated
 		//@Removal(version = "5.0.0")
-		public int GetEscherProperty(short propId, int defaultValue)
+		public int GetEscherProperty(short propId, int defaultValue = 0)
 		{
-			AbstractEscherOptRecord opt = GetEscherOptRecord();
-			EscherSimpleProperty prop = GetEscherProperty(opt, propId);
-			return prop == null ? defaultValue : prop.GetPropertyValue();
-		}
-
-		/**
-		 * Get the value of a simple escher property for this shape.
-		 *
-		 * @param type    The type of the property.
-		 */
-		public int GetEscherProperty(EscherPropertyTypes type, int defaultValue)
-		{
-			AbstractEscherOptRecord opt = GetEscherOptRecord();
-			EscherSimpleProperty prop = GetEscherProperty(opt, type);
-			return prop == null ? defaultValue : prop.GetPropertyValue();
-		}
+            AbstractEscherOptRecord opt = GetEscherOptRecord();
+            EscherSimpleProperty prop = opt.GetEscherProperty(propId) as EscherSimpleProperty;
+            return prop == null ? defaultValue : prop.PropertyValue;
+        }
 
 		/**
 		 * @return  The shape container and its children that can represent this
@@ -437,10 +271,11 @@ namespace NPOI.HSLF.UserModel
 		 */
 		protected void AfterInsert(HSLFSheet sh)
 		{
-			if (_fill != null)
-			{
-				_fill.afterInsert(sh);
-			}
+			throw new NotImplementedException();
+			//if (_fill != null)
+			//{
+			//	_fill.afterInsert(sh);
+			//}
 		}
 
 		/**
@@ -462,231 +297,11 @@ namespace NPOI.HSLF.UserModel
 			_sheet = sheet;
 		}
 
-		Color GetColor(short colorProperty, short opacityProperty)
-		{
-			 AbstractEscherOptRecord opt = GetEscherOptRecord();
-			 EscherSimpleProperty colProp = GetEscherProperty(opt, colorProperty);
-			 Color col;
-			if (colProp == null)
-			{
-				col = Color.White;
-			}
-			else
-			{
-				EscherColorRef ecr = new EscherColorRef(colProp.GetPropertyValue());
-				col = GetColor(ecr);
-				if (col == null)
-				{
-					return null;
-				}
-			}
-
-			double alpha = GetAlpha(opacityProperty);
-			return new Color(); //Color(col.GetRed(), col.GetGreen(), col.GetBlue(), (int)(alpha * 255.0));
-		}
-
-		Color GetColor(EscherColorRef ecr)
-		{
-			bool fPaletteIndex = ecr.HasPaletteIndexFlag();
-			bool fPaletteRGB = ecr.HasPaletteRGBFlag();
-			bool fSystemRGB = ecr.HasSystemRGBFlag();
-			bool fSchemeIndex = ecr.HasSchemeIndexFlag();
-			bool fSysIndex = ecr.HasSysIndexFlag();
-
-			int[] rgb = ecr.GetRGB();
-
-			HSLFSheet sheet = GetSheet();
-			if (fSchemeIndex && sheet != null)
-			{
-				//red is the index to the color scheme
-				ColorSchemeAtom ca = sheet.GetColorScheme();
-				int schemeColor = ca.GetColor(ecr.GetSchemeIndex());
-
-				rgb[0] = (schemeColor >> 0) & 0xFF;
-				rgb[1] = (schemeColor >> 8) & 0xFF;
-				rgb[2] = (schemeColor >> 16) & 0xFF;
-			}
-			else if (fPaletteIndex)
-			{
-				//TODO
-			}
-			else if (fPaletteRGB)
-			{
-				//TODO
-			}
-			else if (fSystemRGB)
-			{
-				//TODO
-			}
-			else if (fSysIndex)
-			{
-				Color col = GetSysIndexColor(ecr);
-				col = ApplySysIndexProcedure(ecr, col);
-				return col;
-			}
-
-			return new Color(rgb[0], rgb[1], rgb[2]);
-		}
-
-		private Color GetSysIndexColor(EscherColorRef ecr)
-		{
-			SysIndexSource sis = ecr.GetSysIndexSource();
-			if (sis == null)
-			{
-				int sysIdx = ecr.GetSysIndex();
-				PresetColor pc = PresetColor.ValueOfNativeId(sysIdx);
-				return (pc != null) ? pc.Color : null;
-			}
-
-			// TODO: check for recursive loops, when color getter also reference
-			// a different color type
-			switch (sis)
-			{
-				case FILL_COLOR:
-					{
-						return GetColor(EscherProperties.FILL__FILLCOLOR, EscherProperties.FILL__FILLOPACITY);
-					}
-				case LINE_OR_FILL_COLOR:
-					{
-						Color col = null;
-						if (this is HSLFSimpleShape) {
-							col = GetColor(EscherProperties.LINESTYLE__COLOR, EscherProperties.LINESTYLE__OPACITY);
-						}
-						if (col == null)
-						{
-							col = GetColor(EscherProperties.FILL__FILLCOLOR, EscherProperties.FILL__FILLOPACITY);
-						}
-						return col;
-					}
-				case LINE_COLOR:
-					{
-						if (this is HSLFSimpleShape) {
-							return GetColor(EscherProperties.LINESTYLE__COLOR, EscherProperties.LINESTYLE__OPACITY);
-						}
-						break;
-					}
-				case SHADOW_COLOR:
-					{
-						if (this is HSLFSimpleShape) {
-							return ((HSLFSimpleShape)this).GetShadowColor();
-						}
-						break;
-					}
-				case CURRENT_OR_LAST_COLOR:
-					{
-						// TODO ... read from graphics context???
-						break;
-					}
-				case FILL_BACKGROUND_COLOR:
-					{
-						return getColor(EscherProperties.FILL__FILLBACKCOLOR, EscherProperties.FILL__FILLOPACITY);
-					}
-				case LINE_BACKGROUND_COLOR:
-					{
-						if (this is HSLFSimpleShape) {
-							return ((HSLFSimpleShape)this).GetLineBackgroundColor();
-						}
-						break;
-					}
-				case FILL_OR_LINE_COLOR:
-					{
-						Color col = GetColor(EscherProperties.FILL__FILLCOLOR, EscherProperties.FILL__FILLOPACITY);
-						if (col == null && this instanceof HSLFSimpleShape) {
-							col = GetColor(EscherProperties.LINESTYLE__COLOR, EscherProperties.LINESTYLE__OPACITY);
-						}
-						return col;
-					}
-				default:
-					break;
-			}
-
-			return null;
-		}
-
-		private Color ApplySysIndexProcedure(EscherColorRef ecr, Color col)
-		{
-
-			 SysIndexProcedure sip = ecr.GetSysIndexProcedure();
-			if (col == null || sip == null)
-			{
-				return col;
-			}
-
-			switch (sip)
-			{
-				case DARKEN_COLOR:
-					{
-						// see java.awt.Color#darken()
-						double FACTOR = (ecr.GetRGB()[2]) / 255;
-						int r = (Math.Round(col.getRed() * FACTOR));
-						int g = (Math.Round(col.getGreen() * FACTOR));
-						int b = (Math.Round(col.getBlue() * FACTOR));
-						return new Color(r, g, b);
-					}
-				case LIGHTEN_COLOR:
-					{
-						double FACTOR = (0xFF - ecr.getRGB()[2]) / 255.;
-
-						int r = col.getRed();
-						int g = col.getGreen();
-						int b = col.getBlue();
-
-						r = Math.toIntExact(Math.round(r + (0xFF - r) * FACTOR));
-						g = Math.toIntExact(Math.round(g + (0xFF - g) * FACTOR));
-						b = Math.toIntExact(Math.round(b + (0xFF - b) * FACTOR));
-
-						return new Color(r, g, b);
-					}
-				default:
-					// TODO ...
-					break;
-			}
-
-			return col;
-		}
-
-		double GetAlpha(EscherPropertyTypes opacityProperty)
-		{
-			AbstractEscherOptRecord opt = GetEscherOptRecord();
-			EscherSimpleProperty op = GetEscherProperty(opt, opacityProperty);
-			int defaultOpacity = 0x00010000;
-			int opacity = (op == null) ? defaultOpacity : op.GetPropertyValue();
-			return Units.FixedPointToDouble(opacity);
-		}
-
-		Color toRGB(int val)
-		{
-			int a = (val >> 24) & 0xFF;
-			int b = (val >> 16) & 0xFF;
-			int g = (val >> 8) & 0xFF;
-			int r = (val >> 0) & 0xFF;
-
-			if (a == 0xFE)
-			{
-				// Color is an sRGB value specified by red, green, and blue fields.
-			}
-			else if (a == 0xFF)
-			{
-				// Color is undefined.
-			}
-			else
-			{
-				// index in the color scheme
-				ColorSchemeAtom ca = GetSheet().GetColorScheme();
-				int schemeColor = ca.GetColor(a);
-
-				r = (schemeColor >> 0) & 0xFF;
-				g = (schemeColor >> 8) & 0xFF;
-				b = (schemeColor >> 16) & 0xFF;
-			}
-			return new Color(r, g, b);
-		}
-
 		//@Override
 		public int GetShapeId()
 		{
-			EscherSpRecord spRecord = GetEscherChild(EscherSpRecord.RECORD_ID);
-			return spRecord == null ? 0 : spRecord.GetShapeId();
+			EscherSpRecord spRecord = (EscherSpRecord)GetEscherChild(EscherSpRecord.RECORD_ID);
+			return spRecord == null ? 0 : spRecord.ShapeId;
 		}
 
 		/**
@@ -696,8 +311,8 @@ namespace NPOI.HSLF.UserModel
 		 */
 		public void SetShapeId(int id)
 		{
-			EscherSpRecord spRecord = GetEscherChild(EscherSpRecord.RECORD_ID);
-			if (spRecord != null) spRecord.SetShapeId(id);
+			EscherSpRecord spRecord = (EscherSpRecord)GetEscherChild(EscherSpRecord.RECORD_ID);
+			if (spRecord != null) spRecord.ShapeId = (id);
 		}
 
 		/**
@@ -714,11 +329,6 @@ namespace NPOI.HSLF.UserModel
 			return _fill;
 		}
 
-		public FillStyle GetFillStyle()
-		{
-			return GetFill().GetFillStyle();
-		}
-
 		//@Override
 		//public void Draw(Graphics2D graphics, Rectangle2D bounds)
 		//{
@@ -727,50 +337,12 @@ namespace NPOI.HSLF.UserModel
 
 		public AbstractEscherOptRecord GetEscherOptRecord()
 		{
-			AbstractEscherOptRecord opt = GetEscherChild(EscherRecordTypes.OPT);
+			AbstractEscherOptRecord opt = GetEscherChild(EscherProperties.OPT) as AbstractEscherOptRecord;
 			if (opt == null)
 			{
-				opt = GetEscherChild(EscherRecordTypes.USER_DEFINED);
+				opt = GetEscherChild(EscherProperties.USER_DEFINED) as AbstractEscherOptRecord;
 			}
 			return opt;
-		}
-
-		public bool GetFlipHorizontal()
-		{
-			EscherSpRecord spRecord = GetEscherChild(EscherSpRecord.RECORD_ID);
-			return (spRecord.GetFlags() & EscherSpRecord.FLAG_FLIPHORIZ) != 0;
-		}
-
-		public void SetFlipHorizontal(bool flip)
-		{
-			EscherSpRecord spRecord = GetEscherChild(EscherSpRecord.RECORD_ID);
-			int flag = spRecord.GetFlags() | EscherSpRecord.FLAG_FLIPHORIZ;
-			spRecord.SetFlags(flag);
-		}
-
-		public bool GetFlipVertical()
-		{
-			EscherSpRecord spRecord = GetEscherChild(EscherSpRecord.RECORD_ID);
-			return (spRecord.GetFlags() & EscherSpRecord.FLAG_FLIPVERT) != 0;
-		}
-
-		public void SetFlipVertical(bool flip)
-		{
-			EscherSpRecord spRecord = GetEscherChild(EscherSpRecord.RECORD_ID);
-			int flag = spRecord.GetFlags() | EscherSpRecord.FLAG_FLIPVERT;
-			spRecord.SetFlags(flag);
-		}
-
-		public double GetRotation()
-		{
-			int rot = GetEscherProperty(EscherPropertyTypes.TRANSFORM__ROTATION);
-			return Units.FixedPointToDouble(rot);
-		}
-
-		public void SetRotation(double theta)
-		{
-			int rot = Units.DoubleToFixedPoint(theta % 360.0);
-			SetEscherProperty(EscherPropertyTypes.TRANSFORM__ROTATION, rot);
 		}
 
 		public bool IsPlaceholder()
@@ -807,7 +379,7 @@ namespace NPOI.HSLF.UserModel
 		protected List<Record.Record> GetClientRecords()
 		{
 			HSLFEscherClientDataRecord clientData = GetClientData(false);
-			return (clientData == null) ? null : clientData.GetHSLFChildRecords();
+			return (clientData == null) ? null : clientData.getHSLFChildRecords();
 		}
 
 		/**
@@ -818,12 +390,12 @@ namespace NPOI.HSLF.UserModel
 		 */
 		protected HSLFEscherClientDataRecord GetClientData(bool create)
 		{
-			HSLFEscherClientDataRecord clientData = GetEscherChild(EscherClientDataRecord.RECORD_ID);
+			HSLFEscherClientDataRecord clientData = GetEscherChild(EscherClientDataRecord.RECORD_ID) as HSLFEscherClientDataRecord;
 			if (clientData == null && create)
 			{
 				clientData = new HSLFEscherClientDataRecord();
-				clientData.SetOptions((short)15);
-				clientData.SetRecordId(EscherClientDataRecord.RECORD_ID);
+				clientData.Options = 15;
+				clientData.RecordId = EscherClientDataRecord.RECORD_ID;
 				GetSpContainer().AddChildBefore(clientData, EscherTextboxRecord.RECORD_ID);
 			}
 			return clientData;

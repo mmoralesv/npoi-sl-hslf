@@ -15,11 +15,23 @@
    limitations under the License.
 ==================================================================== */
 using NPOI.Common.UserModel;
+using NPOI.Common.UserModel.Fonts;
+using NPOI.DDF;
+using NPOI.HPSF;
+using NPOI.HPSF.Extractor;
+using NPOI.HSLF.Exceptions;
+using NPOI.HSLF.Model;
 using NPOI.HSLF.Record;
+using NPOI.POIFS.Crypt;
+using NPOI.POIFS.FileSystem;
 using NPOI.SL.UserModel;
+using NPOI.SS.Formula.Functions;
 using NPOI.Util;
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using static NPOI.HSLF.Record.SlideListWithText;
 
 namespace NPOI.HSLF.UserModel
 {
@@ -37,12 +49,6 @@ namespace NPOI.HSLF.UserModel
     private static int DEFAULT_MAX_RECORD_LENGTH = 10_000_000;
 		private static int MAX_RECORD_LENGTH = DEFAULT_MAX_RECORD_LENGTH;
 
-		public enum LoadSavePhase
-		{
-			INIT, LOADED
-		}
-		private static ThreadLocal<LoadSavePhase> loadSavePhase = new ThreadLocal<>();
-
 		// What we're based on
 		private HSLFSlideShowImpl _hslfSlideShow;
 
@@ -51,7 +57,7 @@ namespace NPOI.HSLF.UserModel
     private Record.Record[] _mostRecentCoreRecords;
 		// Lookup between the PersitPtr "sheet" IDs, and the position
 		// in the mostRecentCoreRecords array
-		private Dictionary<Integer, Integer> _sheetIdToCoreRecordsLookup;
+		private Dictionary<int, int> _sheetIdToCoreRecordsLookup;
 
 		// Records that are interesting
 		private Document _documentRecord;
@@ -66,7 +72,7 @@ namespace NPOI.HSLF.UserModel
 		/**
 		 * @param length the max record length allowed for HSLFSlideShow
 		 */
-		public static void setMaxRecordLength(int length)
+		public static void SetMaxRecordLength(int length)
 		{
 			MAX_RECORD_LENGTH = length;
 		}
@@ -74,7 +80,7 @@ namespace NPOI.HSLF.UserModel
 		/**
 		 * @return the max record length allowed for HSLFSlideShow
 		 */
-		public static int getMaxRecordLength()
+		public static int GetMaxRecordLength()
 		{
 			return MAX_RECORD_LENGTH;
 		}
@@ -86,10 +92,10 @@ namespace NPOI.HSLF.UserModel
 		 * @param hslfSlideShow the HSLFSlideShow to base on
 		 */
 		public HSLFSlideShow(HSLFSlideShowImpl hslfSlideShow)
-			:base(hslfSlideShow.GetDirectory())
+			:base(hslfSlideShow.Directory)
 		{
 
-			loadSavePhase.Set(LoadSavePhase.INIT);
+			//loadSavePhase.Set(LoadSavePhase.INIT);
 
 			// Get useful things from our base slideshow
 			_hslfSlideShow = hslfSlideShow;
@@ -108,15 +114,15 @@ namespace NPOI.HSLF.UserModel
 		// Build up the model level Slides and Notes
 		BuildSlidesAndNotes();
 
-		loadSavePhase.Set(LoadSavePhase.LOADED);
+		//loadSavePhase.Set(LoadSavePhase.LOADED);
     }
 
 	/**
      * Constructs a new, empty, Powerpoint document.
      */
-	public HSLFSlideShow()
+	public HSLFSlideShow():this(HSLFSlideShowImpl.Create())
 	{
-		this(HSLFSlideShowImpl.Create());
+		
 	}
 
 	/**
@@ -176,72 +182,73 @@ namespace NPOI.HSLF.UserModel
 private void FindMostRecentCoreRecords()
 {
 			// To start with, find the most recent in the byte offset domain
-			Dictionary<Integer, Integer> mostRecentByBytes = new Dictionary<Integer, Integer>();
-	foreach (Record.Record record in _hslfSlideShow.getRecords()) {
-	if (record instanceof PersistPtrHolder) {
+			Dictionary<int, int> mostRecentByBytes = new Dictionary<int, int>();
+	foreach (Record.Record record in _hslfSlideShow.GetRecords()) {
+	if (record is PersistPtrHolder) {
 		PersistPtrHolder pph = (PersistPtrHolder)record;
 
 		// If we've already seen any of the "slide" IDs for this
 		// PersistPtr, remove their old positions
 		int[] ids = pph.getKnownSlideIDs();
-		for (int id : ids)
+		foreach (int id in ids)
 		{
-			mostRecentByBytes.remove(id);
+			mostRecentByBytes.Remove(id);
 		}
 
 		// Now, update the byte level locations with their latest values
-		Map<Integer, Integer> thisSetOfLocations = pph.getSlideLocationsLookup();
-		for (int id : ids)
+		Dictionary<int, int> thisSetOfLocations = pph.getSlideLocationsLookup();
+		foreach (int id in ids)
 		{
-			mostRecentByBytes.put(id, thisSetOfLocations.get(id));
+			mostRecentByBytes.Add(id, thisSetOfLocations[id]);
 		}
 	}
 }
 
 // We now know how many unique special records we have, so init
 // the array
-_mostRecentCoreRecords = new Record[mostRecentByBytes.size()];
+_mostRecentCoreRecords = new Record.Record[mostRecentByBytes.Count];
 
-// We'll also want to be able to turn the slide IDs into a position
-// in this array
-_sheetIdToCoreRecordsLookup = new HashMap<>();
-Integer[] allIDs = mostRecentByBytes.keySet().toArray(new Integer[0]);
-Arrays.sort(allIDs);
-for (int i = 0; i < allIDs.length; i++)
+			// We'll also want to be able to turn the slide IDs into a position
+			// in this array
+			_sheetIdToCoreRecordsLookup = new Dictionary<int, int>();
+			int[] allIDs = mostRecentByBytes.Keys.ToArray();
+allIDs.OrderBy(x => x).ToList();
+for (int i = 0; i < allIDs.Length; i++)
 {
-	_sheetIdToCoreRecordsLookup.put(allIDs[i], i);
+	_sheetIdToCoreRecordsLookup.Add(allIDs[i], i);
 }
 
-Map<Integer, Integer> mostRecentByBytesRev = new HashMap<>(mostRecentByBytes.size());
-for (Map.Entry<Integer, Integer> me : mostRecentByBytes.entrySet())
+
+Dictionary<int, int> mostRecentByBytesRev = new Dictionary<int, int>(mostRecentByBytes.Count);
+foreach (var me in mostRecentByBytes)
 {
-	mostRecentByBytesRev.put(me.getValue(), me.getKey());
+	mostRecentByBytesRev.Add(me.Value, me.Key);
 }
 
 // Now convert the byte offsets back into record offsets
-for (Record record : _hslfSlideShow.getRecords())
+foreach (Record.Record record in _hslfSlideShow.GetRecords())
 {
-	if (!(record instanceof PositionDependentRecord)) {
+	if (!(record is PositionDependentRecord)) {
 	continue;
 }
 
 PositionDependentRecord pdr = (PositionDependentRecord)record;
-int recordAt = pdr.getLastOnDiskOffset();
+int recordAt = pdr.GetLastOnDiskOffset();
 
-Integer thisID = mostRecentByBytesRev.get(recordAt);
+int thisID = mostRecentByBytesRev[recordAt];
 
-if (thisID == null)
+if (thisID == 0)
 {
 	continue;
 }
 
 // Bingo. Now, where do we store it?
-int storeAt = _sheetIdToCoreRecordsLookup.get(thisID);
+int storeAt = _sheetIdToCoreRecordsLookup[thisID];
 
 // Tell it its Sheet ID, if it cares
-if (pdr instanceof PositionDependentRecordContainer) {
+if (pdr is PositionDependentRecordContainer) {
 	PositionDependentRecordContainer pdrc = (PositionDependentRecordContainer)record;
-	pdrc.setSheetId(thisID);
+	pdrc.SetSheetId(thisID);
 }
 
 //ly, save the record
@@ -249,18 +256,18 @@ _mostRecentCoreRecords[storeAt] = record;
         }
 
         // Now look for the interesting records in there
-        for (Record record : _mostRecentCoreRecords)
+        foreach (Record.Record record in _mostRecentCoreRecords)
 {
 	// Check there really is a record at this number
 	if (record != null)
 	{
 		// Find the Document, and interesting things in it
-		if (record.getRecordType() == RecordTypes.Document.typeID)
+		if (record.GetRecordType() == RecordTypes.Document.typeID)
 		{
 			_documentRecord = (Document)record;
-			if (_documentRecord.getEnvironment() != null)
+			if (_documentRecord.GetEnvironment() != null)
 			{
-				_fonts = _documentRecord.getEnvironment().getFontCollection();
+				_fonts = _documentRecord.GetEnvironment().GetFontCollection();
 			}
 		}
 	} /*else {
@@ -274,11 +281,11 @@ _mostRecentCoreRecords[storeAt] = record;
      * For a given SlideAtomsSet, return the core record, based on the refID
      * from the SlidePersistAtom
      */
-    public Record getCoreRecordForSAS(SlideAtomsSet sas)
+    public Record.Record GetCoreRecordForSAS(SlideAtomsSet sas)
 {
 	SlidePersistAtom spa = sas.getSlidePersistAtom();
-	int refID = spa.getRefID();
-	return getCoreRecordForRefID(refID);
+	int refID = spa.GetRefID();
+	return GetCoreRecordForRefID(refID);
 }
 
 /**
@@ -288,14 +295,14 @@ _mostRecentCoreRecords[storeAt] = record;
  * @param refID
  *            the refID
  */
-public Record getCoreRecordForRefID(int refID)
+public Record.Record GetCoreRecordForRefID(int refID)
 {
-	Integer coreRecordId = _sheetIdToCoreRecordsLookup.get(refID);
-	if (coreRecordId != null)
+	int coreRecordId = _sheetIdToCoreRecordsLookup[refID];
+	if (coreRecordId != 0)
 	{
 		return _mostRecentCoreRecords[coreRecordId];
 	}
-	LOG.atError().log("We tried to look up a reference to a core record, but there was no core ID for reference ID {}", box(refID));
+	//LOG.atError().log("We tried to look up a reference to a core record, but there was no core ID for reference ID {}", box(refID));
 	return null;
 }
 
@@ -303,7 +310,7 @@ public Record getCoreRecordForRefID(int refID)
  * Build up model level Slide and Notes objects, from the underlying
  * records.
  */
-private void buildSlidesAndNotes()
+private void BuildSlidesAndNotes()
 {
 	// Ensure we really found a Document record earlier
 	// If we didn't, then the file is probably corrupt
@@ -332,8 +339,8 @@ private void buildSlidesAndNotes()
 
 	findMasterSlides();
 
-	// Having sorted out the masters, that leaves the notes and slides
-	Map<Integer, Integer> slideIdToNotes = new HashMap<>();
+			// Having sorted out the masters, that leaves the notes and slides
+			Dictionary<int, int> slideIdToNotes = new Dictionary<int, int>();
 
 	// Start by finding the notes records
 	findNotesSlides(slideIdToNotes);
@@ -350,30 +357,30 @@ private void buildSlidesAndNotes()
  */
 private void findMasterSlides()
 {
-	SlideListWithText masterSLWT = _documentRecord.getMasterSlideListWithText();
+	SlideListWithText masterSLWT = _documentRecord.GetMasterSlideListWithText();
 	if (masterSLWT == null)
 	{
 		return;
 	}
 
-	for (SlideAtomsSet sas : masterSLWT.getSlideAtomsSets()) {
-	Record r = getCoreRecordForSAS(sas);
-	int sheetNo = sas.getSlidePersistAtom().getSlideIdentifier();
-	if (r instanceof Slide) {
+	foreach (SlideAtomsSet sas in masterSLWT.getSlideAtomsSets()) {
+				Record.Record r = GetCoreRecordForSAS(sas);
+	int sheetNo = sas.getSlidePersistAtom().GetSlideIdentifier();
+	if (r is Slide) {
 		HSLFTitleMaster master = new HSLFTitleMaster((Slide)r, sheetNo);
-		master.setSlideShow(this);
-		_titleMasters.add(master);
-	} else if (r instanceof MainMaster) {
+		master.SetSlideShow(this);
+		_titleMasters.Add(master);
+	} else if (r is MainMaster) {
 		HSLFSlideMaster master = new HSLFSlideMaster((MainMaster)r, sheetNo);
-		master.setSlideShow(this);
-		_masters.add(master);
+		master.SetSlideShow(this);
+		_masters.Add(master);
 	}
 }
     }
 
-    private void findNotesSlides(Map<Integer, Integer> slideIdToNotes)
+    private void findNotesSlides(Dictionary<int, int> slideIdToNotes)
 {
-	SlideListWithText notesSLWT = _documentRecord.getNotesSlideListWithText();
+	SlideListWithText notesSLWT = _documentRecord.GetNotesSlideListWithText();
 
 	if (notesSLWT == null)
 	{
@@ -382,47 +389,47 @@ private void findMasterSlides()
 
 	// Match up the records and the SlideAtomSets
 	int idx = -1;
-	for (SlideAtomsSet notesSet : notesSLWT.getSlideAtomsSets()) {
+	foreach (SlideAtomsSet notesSet in notesSLWT.getSlideAtomsSets()) {
 	idx++;
-	// Get the right core record
-	Record r = getCoreRecordForSAS(notesSet);
+				// Get the right core record
+				Record.Record r = GetCoreRecordForSAS(notesSet);
 	SlidePersistAtom spa = notesSet.getSlidePersistAtom();
 
-	String loggerLoc = "A Notes SlideAtomSet at " + idx + " said its record was at refID " + spa.getRefID();
+	String loggerLoc = "A Notes SlideAtomSet at " + idx + " said its record was at refID " + spa.GetRefID();
 
 	// we need to add null-records, otherwise the index references to other existing don't work anymore
 	if (r == null)
 	{
-		LOG.atWarn().log("{}, but that record didn't exist - record ignored.", loggerLoc);
+		//LOG.atWarn().log("{}, but that record didn't exist - record ignored.", loggerLoc);
 		continue;
 	}
 
 	// Ensure it really is a notes record
-	if (!(r instanceof Notes)) {
-		LOG.atError().log("{}, but that was actually a {}", loggerLoc, r);
+	if (!(r is Notes)) {
+		//LOG.atError().log("{}, but that was actually a {}", loggerLoc, r);
 		continue;
 	}
 
 	Notes notesRecord = (Notes)r;
 
 	// Record the match between slide id and these notes
-	int slideId = spa.getSlideIdentifier();
-	slideIdToNotes.put(slideId, idx);
+	int slideId = spa.GetSlideIdentifier();
+	slideIdToNotes.Add(slideId, idx);
 
-	if (notesRecord.getNotesAtom() == null)
+	if (notesRecord.GetNotesAtom() == null)
 	{
-		throw new IllegalStateException("Could not read NotesAtom from the NotesRecord for " + idx);
+		throw new InvalidOperationException("Could not read NotesAtom from the NotesRecord for " + idx);
 	}
 
 	HSLFNotes hn = new HSLFNotes(notesRecord);
-	hn.setSlideShow(this);
-	_notes.add(hn);
+	hn.SetSlideShow(this);
+	_notes.Add(hn);
 }
     }
 
-    private void findSlides(Map<Integer, Integer> slideIdToNotes)
+    private void findSlides(Dictionary<int, int> slideIdToNotes)
 {
-	SlideListWithText slidesSLWT = _documentRecord.getSlideSlideListWithText();
+	SlideListWithText slidesSLWT = _documentRecord.GetSlideSlideListWithText();
 	if (slidesSLWT == null)
 	{
 		return;
@@ -430,23 +437,23 @@ private void findMasterSlides()
 
 	// Match up the records and the SlideAtomSets
 	int idx = -1;
-	for (SlideAtomsSet sas : slidesSLWT.getSlideAtomsSets()) {
+	foreach (SlideAtomsSet sas in slidesSLWT.getSlideAtomsSets()) {
 	idx++;
 	// Get the right core record
 	SlidePersistAtom spa = sas.getSlidePersistAtom();
-	Record r = getCoreRecordForSAS(sas);
+				Record.Record r = GetCoreRecordForSAS(sas);
 
 	// Ensure it really is a slide record
-	if (!(r instanceof Slide)) {
-		LOG.atError().log("A Slide SlideAtomSet at {} said its record was at refID {}, but that was actually a {}",
-				box(idx), box(spa.getRefID()), r);
+	if (!(r is Slide)) {
+		//LOG.atError().log("A Slide SlideAtomSet at {} said its record was at refID {}, but that was actually a {}",
+				//box(idx), box(spa.GetRefID()), r);
 		continue;
 	}
 
 	Slide slide = (Slide)r;
 	if (slide.getSlideAtom() == null)
 	{
-		LOG.atError().log("SlideAtomSet at {} at refID {} is null", box(idx), box(spa.getRefID()));
+		//LOG.atError().log("SlideAtomSet at {} at refID {} is null", box(idx), box(spa.getRefID()));
 		continue;
 	}
 
@@ -457,45 +464,45 @@ private void findMasterSlides()
 	int noteId = slide.getSlideAtom().getNotesID();
 	if (noteId != 0)
 	{
-		Integer notesPos = slideIdToNotes.get(noteId);
-		if (notesPos != null && 0 <= notesPos && notesPos < _notes.size())
+		int notesPos = slideIdToNotes[noteId];
+		if (notesPos != null && 0 <= notesPos && notesPos < _notes.Count)
 		{
-			notes = _notes.get(notesPos);
+			notes = _notes[notesPos];
 		}
 		else
 		{
-			LOG.atError().log("Notes not found for noteId={}", box(noteId));
+			//LOG.atError().log("Notes not found for noteId={}", box(noteId));
 		}
 	}
 
 	// Now, build our slide
-	int slideIdentifier = spa.getSlideIdentifier();
+	int slideIdentifier = spa.GetSlideIdentifier();
 	HSLFSlide hs = new HSLFSlide(slide, notes, sas, slideIdentifier, (idx + 1));
-	hs.setSlideShow(this);
-	_slides.add(hs);
+	hs.SetSlideShow(this);
+	_slides.Add(hs);
 }
     }
 
-    @Override
-	public void write(OutputStream out) throws IOException
+    
+	public void Write(OutputStream _out)
 {
         // check for text paragraph modifications
-        for (HSLFSlide sl : getSlides()) {
+        foreach (HSLFSlide sl in GetSlides()) {
 		writeDirtyParagraphs(sl);
 	}
 
-        for (HSLFSlideMaster sl : getSlideMasters()) {
-		boolean isDirty = false;
-		for (List<HSLFTextParagraph> paras : sl.getTextParagraphs())
+        foreach (HSLFSlideMaster sl in GetSlideMasters()) {
+		bool isDirty = false;
+		foreach (List<HSLFTextParagraph> paras in sl.getTextParagraphs())
 		{
-			for (HSLFTextParagraph p : paras)
+			foreach (HSLFTextParagraph p in paras)
 			{
-				isDirty |= p.isDirty();
+				isDirty |= p.IsDirty();
 			}
 		}
 		if (isDirty)
 		{
-			for (TxMasterStyleAtom sa : sl.getTxMasterStyleAtoms())
+			foreach (TxMasterStyleAtom sa in sl.getTxMasterStyleAtoms())
 			{
 				if (sa != null)
 				{
@@ -506,20 +513,20 @@ private void findMasterSlides()
 		}
 	}
 
-	_hslfSlideShow.write(out);
+	_hslfSlideShow.Write(_out);
 }
 
 private void writeDirtyParagraphs(HSLFShapeContainer container)
 {
-	for (HSLFShape sh : container.getShapes()) {
-	if (sh instanceof HSLFShapeContainer) {
+	foreach (HSLFShape sh in container.getShapes()) {
+	if (sh is HSLFShapeContainer) {
 		writeDirtyParagraphs((HSLFShapeContainer)sh);
-	} else if (sh instanceof HSLFTextShape) {
+	} else if (sh is HSLFTextShape) {
 		HSLFTextShape hts = (HSLFTextShape)sh;
-		boolean isDirty = false;
-		for (HSLFTextParagraph p : hts.getTextParagraphs())
+		bool isDirty = false;
+		foreach (HSLFTextParagraph p in hts.getTextParagraphs())
 		{
-			isDirty |= p.isDirty();
+			isDirty |= p.IsDirty();
 		}
 		if (isDirty)
 		{
@@ -533,7 +540,7 @@ private void writeDirtyParagraphs(HSLFShapeContainer container)
      * Returns an array of the most recent version of all the interesting
      * records
      */
-    public Record[] getMostRecentCoreRecords()
+    public Record.Record[] getMostRecentCoreRecords()
 {
 	return _mostRecentCoreRecords;
 }
@@ -541,7 +548,7 @@ private void writeDirtyParagraphs(HSLFShapeContainer container)
 /**
  * Returns an array of all the normal Slides found in the slideshow
  */
-@Override
+
 	public List<HSLFSlide> getSlides()
 {
 	return _slides;
@@ -558,7 +565,6 @@ public List<HSLFNotes> getNotes()
 /**
  * Returns an array of all the normal Slide Masters found in the slideshow
  */
-@Override
 	public List<HSLFSlideMaster> getSlideMasters()
 {
 	return _masters;
@@ -572,20 +578,20 @@ public List<HSLFTitleMaster> getTitleMasters()
 	return _titleMasters;
 }
 
-@Override
-	public List<HSLFPictureData> getPictureData()
-{
-	return _hslfSlideShow.getPictureData();
-}
+
+//	public List<HSLFPictureData> getPictureData()
+//{
+//	return _hslfSlideShow.getPictureData();
+//}
 
 /**
  * Returns the data of all the embedded OLE object in the SlideShow
  */
-@SuppressWarnings("WeakerAccess")
+
 
 	public HSLFObjectData[] getEmbeddedObjects()
 {
-	return _hslfSlideShow.getEmbeddedObjects();
+	return _hslfSlideShow.GetEmbeddedObjects();
 }
 
 /**
@@ -596,21 +602,21 @@ public HSLFSoundData[] getSoundData()
 	return HSLFSoundData.find(_documentRecord);
 }
 
-@Override
+
 	public Dimension getPageSize()
 {
-	DocumentAtom docatom = _documentRecord.getDocumentAtom();
-	int pgx = (int)Units.masterToPoints((int)docatom.getSlideSizeX());
-	int pgy = (int)Units.masterToPoints((int)docatom.getSlideSizeY());
+	DocumentAtom docatom = _documentRecord.GetDocumentAtom();
+	int pgx = (int)Units.MasterToPoints((int)docatom.GetSlideSizeX());
+	int pgy = (int)Units.MasterToPoints((int)docatom.GetSlideSizeY());
 	return new Dimension(pgx, pgy);
 }
 
-@Override
+
 	public void setPageSize(Dimension pgsize)
 {
-	DocumentAtom docatom = _documentRecord.getDocumentAtom();
-	docatom.setSlideSizeX(Units.pointsToMaster(pgsize.width));
-	docatom.setSlideSizeY(Units.pointsToMaster(pgsize.height));
+	DocumentAtom docatom = _documentRecord.GetDocumentAtom();
+	docatom.SetSlideSizeX(Units.PointsToMaster(pgsize.Width));
+	docatom.SetSlideSizeY(Units.PointsToMaster(pgsize.Height));
 }
 
 /**
@@ -637,28 +643,28 @@ public Document getDocumentRecord()
  * @param newSlideNumber
  *            The new slide number (1 based)
  */
-@SuppressWarnings("WeakerAccess")
+
 
 	public void reorderSlide(int oldSlideNumber, int newSlideNumber)
 {
 	// Ensure these numbers are valid
 	if (oldSlideNumber < 1 || newSlideNumber < 1)
 	{
-		throw new IllegalArgumentException("Old and new slide numbers must be greater than 0");
+		throw new InvalidOperationException("Old and new slide numbers must be greater than 0");
 	}
-	if (oldSlideNumber > _slides.size() || newSlideNumber > _slides.size())
+	if (oldSlideNumber > _slides.Count || newSlideNumber > _slides.Count)
 	{
-		throw new IllegalArgumentException(
+		throw new ArgumentNullException(
 				"Old and new slide numbers must not exceed the number of slides ("
-						+ _slides.size() + ")");
+						+ _slides.Count + ")");
 	}
 
 	// The order of slides is defined by the order of slide atom sets in the
 	// SlideListWithText container.
-	SlideListWithText slwt = _documentRecord.getSlideSlideListWithText();
+	SlideListWithText slwt = _documentRecord.GetSlideSlideListWithText();
 	if (slwt == null)
 	{
-		throw new IllegalStateException("Slide record not defined.");
+		throw new InvalidOperationException("Slide record not defined.");
 	}
 	SlideAtomsSet[] sas = slwt.getSlideAtomsSets();
 
@@ -667,17 +673,18 @@ public Document getDocumentRecord()
 	sas[newSlideNumber - 1] = tmp;
 
 	Collections.swap(_slides, oldSlideNumber - 1, newSlideNumber - 1);
-	_slides.get(newSlideNumber - 1).setSlideNumber(newSlideNumber);
-	_slides.get(oldSlideNumber - 1).setSlideNumber(oldSlideNumber);
 
-	ArrayList<Record> lst = new ArrayList<>();
-	for (SlideAtomsSet s : sas) {
-	lst.add(s.getSlidePersistAtom());
-	lst.addAll(Arrays.asList(s.getSlideRecords()));
+	_slides.ElementAt(newSlideNumber - 1).setSlideNumber(newSlideNumber);
+	_slides.ElementAt(oldSlideNumber - 1).setSlideNumber(oldSlideNumber);
+
+			List<Record.Record> lst = new List<Record.Record>();
+	foreach (SlideAtomsSet s in sas) {
+	lst.Add(s.getSlidePersistAtom());
+	lst.AddRange(Arrays.AsList(s.getSlideRecords()));
 }
 
-Record[] r = lst.toArray(new Record[0]);
-slwt.setChildRecord(r);
+			Record.Record[] r = lst.ToArray();
+slwt.SetChildRecord(r);
     }
 
     /**
@@ -691,49 +698,50 @@ slwt.setChildRecord(r);
      *            the index of the slide to remove (0-based)
      * @return the slide that was removed from the slide show.
      */
-    @SuppressWarnings("WeakerAccess")
+    
 
 	public HSLFSlide removeSlide(int index)
 {
-	int lastSlideIdx = _slides.size() - 1;
+	int lastSlideIdx = _slides.Count - 1;
 	if (index < 0 || index > lastSlideIdx)
 	{
-		throw new IllegalArgumentException("Slide index (" + index + ") is out of range (0.."
+		throw new ArgumentException("Slide index (" + index + ") is out of range (0.."
 				+ lastSlideIdx + ")");
 	}
 
-	SlideListWithText slwt = _documentRecord.getSlideSlideListWithText();
+	SlideListWithText slwt = _documentRecord.GetSlideSlideListWithText();
 	if (slwt == null)
 	{
-		throw new IllegalStateException("Slide record not defined.");
+		throw new InvalidOperationException("Slide record not defined.");
 	}
 	SlideAtomsSet[] sas = slwt.getSlideAtomsSets();
 
-	List<Record> records = new ArrayList<>();
-	List<SlideAtomsSet> sa = new ArrayList<>(Arrays.asList(sas));
+			List<Record.Record> records = new List<Record.Record>();
+	List<SlideAtomsSet> sa = new List<SlideAtomsSet>(Arrays.AsList(sas));
 
-	HSLFSlide removedSlide = _slides.remove(index);
-	_notes.remove(removedSlide.getNotes());
-	sa.remove(index);
+	HSLFSlide removedSlide = _slides.ElementAt(index);
+			_slides.RemoveAt(index);
+	_notes.Remove(removedSlide.GetNotes());
+	sa.RemoveAt(index);
 
 	int i = 0;
-	for (HSLFSlide s : _slides) {
+	foreach (HSLFSlide s in _slides) {
 	s.setSlideNumber(i++);
 }
 
-for (SlideAtomsSet s : sa)
+foreach (SlideAtomsSet s in sa)
 {
-	records.add(s.getSlidePersistAtom());
-	records.addAll(Arrays.asList(s.getSlideRecords()));
+	records.Add(s.getSlidePersistAtom());
+	records.AddRange(Arrays.AsList(s.getSlideRecords()));
 }
-if (sa.isEmpty())
+if (sa.Count==0)
 {
-	_documentRecord.removeSlideListWithText(slwt);
+	_documentRecord.RemoveSlideListWithText(slwt);
 }
 else
 {
-	slwt.setSlideAtomsSets(sa.toArray(new SlideAtomsSet[0]));
-	slwt.setChildRecord(records.toArray(new Record[0]));
+	slwt.setSlideAtomsSets(sa.ToArray());
+	slwt.SetChildRecord(records.ToArray());
 }
 
 // if the removed slide had notes - remove references to them too
@@ -741,34 +749,34 @@ else
 int notesId = removedSlide.getSlideRecord().getSlideAtom().getNotesID();
 if (notesId != 0)
 {
-	SlideListWithText nslwt = _documentRecord.getNotesSlideListWithText();
-	records = new ArrayList<>();
-	ArrayList<SlideAtomsSet> na = new ArrayList<>();
+	SlideListWithText nslwt = _documentRecord.GetNotesSlideListWithText();
+				records = new List<Record.Record>();
+				List<SlideAtomsSet> na = new List<SlideAtomsSet>();
 	if (nslwt != null)
 	{
-		for (SlideAtomsSet ns : nslwt.getSlideAtomsSets())
+		foreach (SlideAtomsSet ns in nslwt.getSlideAtomsSets())
 		{
-			if (ns.getSlidePersistAtom().getSlideIdentifier() == notesId)
+			if (ns.getSlidePersistAtom().GetSlideIdentifier() == notesId)
 			{
 				continue;
 			}
-			na.add(ns);
-			records.add(ns.getSlidePersistAtom());
+			na.Add(ns);
+			records.Add(ns.getSlidePersistAtom());
 			if (ns.getSlideRecords() != null)
 			{
-				records.addAll(Arrays.asList(ns.getSlideRecords()));
+				records.AddRange(Arrays.AsList(ns.getSlideRecords()));
 			}
 		}
 
-		if (!na.isEmpty())
+		if (!(na.Count==0))
 		{
-			nslwt.setSlideAtomsSets(na.toArray(new SlideAtomsSet[0]));
-			nslwt.setChildRecord(records.toArray(new Record[0]));
+			nslwt.setSlideAtomsSets(na.ToArray());
+			nslwt.SetChildRecord(records.ToArray());
 		}
 	}
-	if (na.isEmpty())
+	if (na.Count==0)
 	{
-		_documentRecord.removeSlideListWithText(nslwt);
+		_documentRecord.RemoveSlideListWithText(nslwt);
 	}
 }
 
@@ -780,35 +788,35 @@ return removedSlide;
      *
      * @return the created {@code Slide}
      */
-    @Override
+    
 	public HSLFSlide createSlide()
 {
 	// We need to add the records to the SLWT that deals
 	// with Slides.
 	// Add it, if it doesn't exist
-	SlideListWithText slist = _documentRecord.getSlideSlideListWithText();
+	SlideListWithText slist = _documentRecord.GetSlideSlideListWithText();
 	if (slist == null)
 	{
 		// Need to add a new one
 		slist = new SlideListWithText();
 		slist.setInstance(SlideListWithText.SLIDES);
-		_documentRecord.addSlideListWithText(slist);
+		_documentRecord.AddSlideListWithText(slist);
 	}
 
 	// Grab the SlidePersistAtom with the highest Slide Number.
 	// (Will stay as null if no SlidePersistAtom exists yet in
 	// the slide, or only master slide's ones do)
 	SlidePersistAtom prev = null;
-	for (SlideAtomsSet sas : slist.getSlideAtomsSets()) {
+	foreach (SlideAtomsSet sas in slist.getSlideAtomsSets()) {
 	SlidePersistAtom spa = sas.getSlidePersistAtom();
-	if (spa.getSlideIdentifier() >= 0)
+	if (spa.GetSlideIdentifier() >= 0)
 	{
 		// Must be for a real slide
 		if (prev == null)
 		{
 			prev = spa;
 		}
-		if (prev.getSlideIdentifier() < spa.getSlideIdentifier())
+		if (prev.GetSlideIdentifier() < spa.GetSlideIdentifier())
 		{
 			prev = spa;
 		}
@@ -819,64 +827,63 @@ return removedSlide;
 SlidePersistAtom sp = new SlidePersistAtom();
 
 // First slideId is always 256
-sp.setSlideIdentifier(prev == null ? 256 : (prev.getSlideIdentifier() + 1));
+sp.SetSlideIdentifier(prev == null ? 256 : (prev.GetSlideIdentifier() + 1));
 
 // Add this new SlidePersistAtom to the SlideListWithText
 slist.addSlidePersistAtom(sp);
 
 // Create a new Slide
-HSLFSlide slide = new HSLFSlide(sp.getSlideIdentifier(), sp.getRefID(), _slides.size() + 1);
-slide.setSlideShow(this);
+HSLFSlide slide = new HSLFSlide(sp.GetSlideIdentifier(), sp.GetRefID(), _slides.Count + 1);
+slide.SetSlideShow(this);
 slide.onCreate();
 
 // Add in to the list of Slides
-_slides.add(slide);
-LOG.atInfo().log("Added slide {} with ref {} and identifier {}", box(_slides.size()), box(sp.getRefID()), box(sp.getSlideIdentifier()));
+_slides.Add(slide);
+//LOG.atInfo().log("Added slide {} with ref {} and identifier {}", box(_slides.size()), box(sp.getRefID()), box(sp.getSlideIdentifier()));
 
 // Add the core records for this new Slide to the record tree
 Slide slideRecord = slide.getSlideRecord();
 int psrId = addPersistentObject(slideRecord);
-sp.setRefID(psrId);
-slideRecord.setSheetId(psrId);
+sp.SetRefID(psrId);
+slideRecord.SetSheetId(psrId);
 
-slide.setMasterSheet(_masters.get(0));
+slide.setMasterSheet(_masters.ElementAt(0));
 // All done and added
 return slide;
     }
 
-    @Override
-	public HSLFPictureData addPicture(byte[] data, PictureType format) throws IOException
-{
-        if (format == null || format.nativeId == -1) {
-		throw new IllegalArgumentException("Unsupported picture format: " + format);
-	}
+    
+//	public HSLFPictureData addPicture(byte[] data, PictureType format)
+//{
+//        if (format == null || format.nativeId == -1) {
+//		throw new ArgumentException("Unsupported picture format: " + format);
+//	}
 
-	HSLFPictureData pd = findPictureData(data);
-        if (pd != null) {
-		// identical picture was already added to the SlideShow
-		return pd;
-	}
+//	HSLFPictureData pd = findPictureData(data);
+//        if (pd != null) {
+//		// identical picture was already added to the SlideShow
+//		return pd;
+//	}
 
-	EscherContainerRecord bstore;
+//	EscherContainerRecord bstore;
 
-	EscherContainerRecord dggContainer = _documentRecord.getPPDrawingGroup().getDggContainer();
-	bstore = HSLFShape.getEscherChild(dggContainer,
-                EscherContainerRecord.BSTORE_CONTAINER);
-        if (bstore == null) {
-		bstore = new EscherContainerRecord();
-		bstore.setRecordId(EscherContainerRecord.BSTORE_CONTAINER);
+//	EscherContainerRecord dggContainer = _documentRecord.GetPPDrawingGroup().getDggContainer();
+//	bstore = HSLFShape.GetEscherChild(dggContainer, EscherContainerRecord.BSTORE_CONTAINER);
+//        if (bstore == null) {
+//		bstore = new EscherContainerRecord();
+//		//bstore.setRecordId(EscherContainerRecord.BSTORE_CONTAINER);
 
-		dggContainer.addChildBefore(bstore, EscherOptRecord.RECORD_ID);
-	}
+//		dggContainer.AddChildBefore(bstore, EscherOptRecord.RECORD_ID);
+//	}
 
-	EscherBSERecord bse = addNewEscherBseRecord(bstore, format, data, 0);
-	HSLFPictureData pict = HSLFPictureData.createFromImageData(format, bstore, bse, data);
+//	EscherBSERecord bse = addNewEscherBseRecord(bstore, format, data, 0);
+//	HSLFPictureData pict = HSLFPictureData.createFromImageData(format, bstore, bse, data);
 
-        int offset = _hslfSlideShow.addPicture(pict);
-	bse.setOffset(offset);
+//        int offset = _hslfSlideShow.AddPicture(pict);
+//	bse.setOffset(offset);
 
-        return pict;
-}
+//        return pict;
+//}
 
 /**
  * Adds a picture to the presentation.
@@ -887,14 +894,14 @@ return slide;
  * @return the picture data.
  * @since 3.15 beta 2
  */
-@Override
-	public HSLFPictureData addPicture(InputStream is, PictureType format) throws IOException
-{
-        if (format == null || format.nativeId == -1) { // fail early
-		throw new IllegalArgumentException("Unsupported picture format: " + format);
-	}
-        return addPicture(IOUtils.toByteArray(is), format);
-}
+
+//	public HSLFPictureData addPicture(InputStream is, PictureType format)
+//{
+//        if (format == null || format.nativeId == -1) { // fail early
+//		throw new IllegalArgumentException("Unsupported picture format: " + format);
+//	}
+//        return addPicture(IOUtils.toByteArray(is), format);
+//}
 
 /**
  * Adds a picture to the presentation.
@@ -907,40 +914,40 @@ return slide;
  * @return the picture data.
  * @since 3.15 beta 2
  */
-@Override
-	public HSLFPictureData addPicture(File pict, PictureType format) throws IOException
-{
-        if (format == null || format.nativeId == -1) { // fail early
-		throw new IllegalArgumentException("Unsupported picture format: " + format);
-	}
-        byte[]
-	data = IOUtils.safelyAllocate(pict.length(), MAX_RECORD_LENGTH);
-        try (FileInputStream is = new FileInputStream(pict)) {
-	IOUtils.readFully(is, data);
-}
-return addPicture(data, format);
-    }
 
-    /**
-     * check if a picture with this picture data already exists in this presentation
-     *
-     * @param pictureData The picture data to find in the SlideShow
-     * @return {@code null} if picture data is not found in this slideshow
-     * @since 3.15 beta 3
-     */
-    @Override
-	public HSLFPictureData findPictureData(byte[] pictureData)
-{
-	byte[] uid = HSLFPictureData.getChecksum(pictureData);
+//	public HSLFPictureData addPicture(File pict, PictureType format)
+//{
+//        if (format == null || format.nativeId == -1) { // fail early
+//		throw new IllegalArgumentException("Unsupported picture format: " + format);
+//	}
+//        byte[]
+//	data = IOUtils.safelyAllocate(pict.length(), MAX_RECORD_LENGTH);
+//        try (FileInputStream is = new FileInputStream(pict)) {
+//	IOUtils.readFully(is, data);
+//}
+//return addPicture(data, format);
+//    }
 
-	for (HSLFPictureData pic : getPictureData()) {
-	if (Arrays.equals(pic.getUID(), uid))
-	{
-		return pic;
-	}
-}
-return null;
-    }
+//    /**
+//     * check if a picture with this picture data already exists in this presentation
+//     *
+//     * @param pictureData The picture data to find in the SlideShow
+//     * @return {@code null} if picture data is not found in this slideshow
+//     * @since 3.15 beta 3
+//     */
+    
+//	public HSLFPictureData findPictureData(byte[] pictureData)
+//{
+//	byte[] uid = HSLFPictureData.getChecksum(pictureData);
+
+//	for (HSLFPictureData pic : getPictureData()) {
+//	if (Arrays.equals(pic.getUID(), uid))
+//	{
+//		return pic;
+//	}
+//}
+//return null;
+//    }
 
     /**
      * Add a font in this presentation
@@ -948,9 +955,9 @@ return null;
      * @param fontInfo the font to add
      * @return the registered HSLFFontInfo - the font info object is unique based on the typeface
      */
-    public HSLFFontInfo addFont(FontInfo fontInfo)
+    public HSLFFontInfo AddFont(FontInfo fontInfo)
 {
-	return getDocumentRecord().getEnvironment().getFontCollection().addFont(fontInfo);
+	return getDocumentRecord().GetEnvironment().GetFontCollection().AddFont(fontInfo);
 }
 
 /**
@@ -962,12 +969,12 @@ return null;
  *
  * @since POI 4.1.0
  */
-@Override
-	public HSLFFontInfo addFont(InputStream fontData) throws IOException
+
+	public HSLFFontInfo AddFont(InputStream fontData)
 {
 	Document doc = getDocumentRecord();
-	doc.getDocumentAtom().setSaveWithFonts(true);
-        return doc.getEnvironment().getFontCollection().addFont(fontData);
+	doc.GetDocumentAtom().SetSaveWithFonts(true);
+        return doc.GetEnvironment().GetFontCollection().AddFont(fontData);
 }
 
 /**
@@ -978,9 +985,9 @@ return null;
  * @return of an instance of {@code PPFont} or {@code null} if not
  *         found
  */
-public HSLFFontInfo getFont(int idx)
+public HSLFFontInfo GetFont(int idx)
 {
-	return getDocumentRecord().getEnvironment().getFontCollection().getFontInfo(idx);
+	return getDocumentRecord().GetEnvironment().GetFontCollection().GetFontInfo(idx);
 }
 
 /**
@@ -990,13 +997,13 @@ public HSLFFontInfo getFont(int idx)
  */
 public int getNumberOfFonts()
 {
-	return getDocumentRecord().getEnvironment().getFontCollection().getNumberOfFonts();
+	return getDocumentRecord().GetEnvironment().GetFontCollection().GetNumberOfFonts();
 }
 
-@Override
+
 	public List<HSLFFontInfo> getFonts()
 {
-	return getDocumentRecord().getEnvironment().getFontCollection().getFonts();
+	return getDocumentRecord().GetEnvironment().GetFontCollection().GetFonts();
 }
 
 /**
@@ -1016,13 +1023,13 @@ public HeadersFooters getSlideHeadersFooters()
  */
 public HeadersFooters getNotesHeadersFooters()
 {
-	if (_notes.isEmpty())
+	if (_notes.Count==0)
 	{
 		return new HeadersFooters(this, HeadersFootersContainer.NotesHeadersFootersContainer);
 	}
 	else
 	{
-		return new HeadersFooters(_notes.get(0), HeadersFootersContainer.NotesHeadersFootersContainer);
+		return new HeadersFooters(_notes.ElementAt(0), HeadersFootersContainer.NotesHeadersFootersContainer);
 	}
 }
 
@@ -1033,30 +1040,30 @@ public HeadersFooters getNotesHeadersFooters()
  *            the path or url to the movie
  * @return 0-based index of the movie
  */
-public int addMovie(String path, int type)
-{
-	ExMCIMovie mci;
-	switch (type)
-	{
-		case MovieShape.MOVIE_MPEG:
-			mci = new ExMCIMovie();
-			break;
-		case MovieShape.MOVIE_AVI:
-			mci = new ExAviMovie();
-			break;
-		default:
-			throw new IllegalArgumentException("Unsupported Movie: " + type);
-	}
+//public int addMovie(String path, int type)
+//{
+//	ExMCIMovie mci;
+//	switch (type)
+//	{
+//		case MovieShape.MOVIE_MPEG:
+//			mci = new ExMCIMovie();
+//			break;
+//		case MovieShape.MOVIE_AVI:
+//			mci = new ExAviMovie();
+//			break;
+//		default:
+//			throw new IllegalArgumentException("Unsupported Movie: " + type);
+//	}
 
-	ExVideoContainer exVideo = mci.getExVideo();
-	exVideo.getExMediaAtom().setMask(0xE80000);
-	exVideo.getPathAtom().setText(path);
+//	ExVideoContainer exVideo = mci.getExVideo();
+//	exVideo.getExMediaAtom().setMask(0xE80000);
+//	exVideo.getPathAtom().setText(path);
 
-	int objectId = addToObjListAtom(mci);
-	exVideo.getExMediaAtom().setObjectId(objectId);
+//	int objectId = addToObjListAtom(mci);
+//	exVideo.getExMediaAtom().setObjectId(objectId);
 
-	return objectId;
-}
+//	return objectId;
+//}
 
 /**
  * Add a control in this presentation
@@ -1068,96 +1075,95 @@ public int addMovie(String path, int type)
  *            "ShockwaveFlash.ShockwaveFlash.9"
  * @return 0-based index of the control
  */
-@SuppressWarnings("unused")
 
-	public int addControl(String name, String progId)
-{
-	ExControl ctrl = new ExControl();
-	ctrl.setProgId(progId);
-	ctrl.setMenuName(name);
-	ctrl.setClipboardName(name);
+//	public int addControl(String name, String progId)
+//{
+//	ExControl ctrl = new ExControl();
+//	ctrl.setProgId(progId);
+//	ctrl.setMenuName(name);
+//	ctrl.setClipboardName(name);
 
-	ExOleObjAtom oleObj = ctrl.getExOleObjAtom();
-	oleObj.setDrawAspect(ExOleObjAtom.DRAW_ASPECT_VISIBLE);
-	oleObj.setType(ExOleObjAtom.TYPE_CONTROL);
-	oleObj.setSubType(ExOleObjAtom.SUBTYPE_DEFAULT);
+//	ExOleObjAtom oleObj = ctrl.getExOleObjAtom();
+//	oleObj.setDrawAspect(ExOleObjAtom.DRAW_ASPECT_VISIBLE);
+//	oleObj.setType(ExOleObjAtom.TYPE_CONTROL);
+//	oleObj.setSubType(ExOleObjAtom.SUBTYPE_DEFAULT);
 
-	int objectId = addToObjListAtom(ctrl);
-	oleObj.setObjID(objectId);
-	return objectId;
-}
+//	int objectId = addToObjListAtom(ctrl);
+//	oleObj.setObjID(objectId);
+//	return objectId;
+//}
 
 /**
  * Add a embedded object to this presentation
  *
  * @return 0-based index of the embedded object
  */
-public int addEmbed(POIFSFileSystem poiData)
-{
-	DirectoryNode root = poiData.getRoot();
+//public int addEmbed(POIFSFileSystem poiData)
+//{
+//	DirectoryNode root = poiData.Root;
 
-	// prepare embedded data
-	if (new ClassID().equals(root.getStorageClsid()))
-	{
-		// need to set class id
-		Map<String, ClassID> olemap = getOleMap();
-		ClassID classID = null;
-		for (Map.Entry<String, ClassID> entry : olemap.entrySet()) {
-	if (root.hasEntry(entry.getKey()))
-	{
-		classID = entry.getValue();
-		break;
-	}
-}
-if (classID == null)
-{
-	throw new IllegalArgumentException("Unsupported embedded document");
-}
+//	// prepare embedded data
+//	if (new ClassID().Equals(root.GetStorageClsid()))
+//	{
+//		// need to set class id
+//		Dictionary<String, ClassID> olemap = getOleMap();
+//		ClassID classID = null;
+//		foreach (var entry in olemap) {
+//	if (root.HasEntry(entry.Key))
+//	{
+//		classID = entry.Value;
+//		break;
+//	}
+//}
+//if (classID == null)
+//{
+//	throw new ArgumentException("Unsupported embedded document");
+//}
 
-root.setStorageClsid(classID);
-        }
+//root.SetStorageClsid(classID);
+//        }
 
-        ExEmbed exEmbed = new ExEmbed();
-// remove unneccessary infos, so we don't need to specify the type
-// of the ole object multiple times
-Record[] children = exEmbed.getChildRecords();
-exEmbed.removeChild(children[2]);
-exEmbed.removeChild(children[3]);
-exEmbed.removeChild(children[4]);
+//        ExEmbed exEmbed = new ExEmbed();
+//// remove unneccessary infos, so we don't need to specify the type
+//// of the ole object multiple times
+//Record[] children = exEmbed.getChildRecords();
+//exEmbed.removeChild(children[2]);
+//exEmbed.removeChild(children[3]);
+//exEmbed.removeChild(children[4]);
 
-ExEmbedAtom eeEmbed = exEmbed.getExEmbedAtom();
-eeEmbed.setCantLockServerB(true);
+//ExEmbedAtom eeEmbed = exEmbed.getExEmbedAtom();
+//eeEmbed.setCantLockServerB(true);
 
-ExOleObjAtom eeAtom = exEmbed.getExOleObjAtom();
-eeAtom.setDrawAspect(ExOleObjAtom.DRAW_ASPECT_VISIBLE);
-eeAtom.setType(ExOleObjAtom.TYPE_EMBEDDED);
-// eeAtom.setSubType(ExOleObjAtom.SUBTYPE_EXCEL);
-// should be ignored?!?, see MS-PPT ExOleObjAtom, but Libre Office sets it ...
-eeAtom.setOptions(1226240);
+//ExOleObjAtom eeAtom = exEmbed.getExOleObjAtom();
+//eeAtom.setDrawAspect(ExOleObjAtom.DRAW_ASPECT_VISIBLE);
+//eeAtom.setType(ExOleObjAtom.TYPE_EMBEDDED);
+//// eeAtom.setSubType(ExOleObjAtom.SUBTYPE_EXCEL);
+//// should be ignored?!?, see MS-PPT ExOleObjAtom, but Libre Office sets it ...
+//eeAtom.setOptions(1226240);
 
-ExOleObjStg exOleObjStg = new ExOleObjStg();
-try
-{
-	Ole10Native.createOleMarkerEntry(poiData);
-	UnsynchronizedByteArrayOutputStream bos = new UnsynchronizedByteArrayOutputStream();
-	poiData.writeFilesystem(bos);
-	exOleObjStg.setData(bos.toByteArray());
-}
-catch (IOException e)
-{
-	throw new HSLFException(e);
-}
+//ExOleObjStg exOleObjStg = new ExOleObjStg();
+//try
+//{
+//	Ole10Native.createOleMarkerEntry(poiData);
+//	UnsynchronizedByteArrayOutputStream bos = new UnsynchronizedByteArrayOutputStream();
+//	poiData.writeFilesystem(bos);
+//	exOleObjStg.setData(bos.toByteArray());
+//}
+//catch (IOException e)
+//{
+//	throw new HSLFException(e);
+//}
 
-int psrId = addPersistentObject(exOleObjStg);
-exOleObjStg.setPersistId(psrId);
-eeAtom.setObjStgDataRef(psrId);
+//int psrId = addPersistentObject(exOleObjStg);
+//exOleObjStg.setPersistId(psrId);
+//eeAtom.setObjStgDataRef(psrId);
 
-int objectId = addToObjListAtom(exEmbed);
-eeAtom.setObjID(objectId);
-return objectId;
-    }
+//int objectId = addToObjListAtom(exEmbed);
+//eeAtom.setObjID(objectId);
+//return objectId;
+//    }
 
-    @Override
+    
 	public HPSFPropertiesExtractor getMetadataTextExtractor()
 {
 	return new HPSFPropertiesExtractor(getSlideShowImpl());
@@ -1165,53 +1171,53 @@ return objectId;
 
 int addToObjListAtom(RecordContainer exObj)
 {
-	ExObjList lst = getDocumentRecord().getExObjList(true);
-	ExObjListAtom objAtom = lst.getExObjListAtom();
+	ExObjList lst = getDocumentRecord().GetExObjList(true);
+	ExObjListAtom objAtom = lst.GetExObjListAtom();
 	// increment the object ID seed
-	int objectId = (int)objAtom.getObjectIDSeed() + 1;
-	objAtom.setObjectIDSeed(objectId);
+	int objectId = (int)objAtom.GetObjectIDSeed() + 1;
+	objAtom.SetObjectIDSeed(objectId);
 
-	lst.addChildAfter(exObj, objAtom);
+	lst.AddChildAfter(exObj, objAtom);
 
 	return objectId;
 }
 
-private static Map<String, ClassID> getOleMap()
+private static Dictionary<String, ClassID> getOleMap()
 {
-	Map<String, ClassID> olemap = new HashMap<>();
-	olemap.put(POWERPOINT_DOCUMENT, ClassIDPredefined.POWERPOINT_V8.getClassID());
+			Dictionary<String, ClassID> olemap = new Dictionary<string, ClassID>();
+	olemap.Add(POWERPOINT_DOCUMENT, ClassIDPredefined.POWERPOINT_V8.getClassID());
 	// as per BIFF8 spec
-	olemap.put("Workbook", ClassIDPredefined.EXCEL_V8.getClassID());
+	olemap.Add("Workbook", ClassIDPredefined.EXCEL_V8.getClassID());
 	// Typically from third party programs
-	olemap.put("WORKBOOK", ClassIDPredefined.EXCEL_V8.getClassID());
+	olemap.Add("WORKBOOK", ClassIDPredefined.EXCEL_V8.getClassID());
 	// Typically odd Crystal Reports exports
-	olemap.put("BOOK", ClassIDPredefined.EXCEL_V8.getClassID());
+	olemap.Add("BOOK", ClassIDPredefined.EXCEL_V8.getClassID());
 	// ... to be continued
 	return olemap;
 }
 
 private int addPersistentObject(PositionDependentRecord slideRecord)
 {
-	slideRecord.setLastOnDiskOffset(HSLFSlideShowImpl.UNSET_OFFSET);
-	_hslfSlideShow.appendRootLevelRecord((Record)slideRecord);
+	slideRecord.SetLastOnDiskOffset(HSLFSlideShowImpl.UNSET_OFFSET);
+	_hslfSlideShow.appendRootLevelRecord((Record.Record)slideRecord);
 
-	// For position dependent records, hold where they were and now are
-	// As we go along, update, and hand over, to any Position Dependent
-	// records we happen across
-	Map<RecordTypes, PositionDependentRecord> interestingRecords =
-			new HashMap<>();
+			// For position dependent records, hold where they were and now are
+			// As we go along, update, and hand over, to any Position Dependent
+			// records we happen across
+			Dictionary<RecordTypes, PositionDependentRecord> interestingRecords =
+					new Dictionary<RecordTypes, PositionDependentRecord>();
 
 	try
 	{
-		_hslfSlideShow.updateAndWriteDependantRecords(null, interestingRecords);
+		_hslfSlideShow.UpdateAndWriteDependantRecords(null, interestingRecords);
 	}
 	catch (IOException e)
 	{
 		throw new HSLFException(e);
 	}
 
-	PersistPtrHolder ptr = (PersistPtrHolder)interestingRecords.get(RecordTypes.PersistPtrIncrementalBlock);
-	UserEditAtom usr = (UserEditAtom)interestingRecords.get(RecordTypes.UserEditAtom);
+	PersistPtrHolder ptr = (PersistPtrHolder)interestingRecords[RecordTypes.PersistPtrIncrementalBlock];
+	UserEditAtom usr = (UserEditAtom)interestingRecords[RecordTypes.UserEditAtom];
 
 	// persist ID is UserEditAtom.maxPersistWritten + 1
 	int psrId = usr.getMaxPersistWritten() + 1;
@@ -1223,15 +1229,15 @@ private int addPersistentObject(PositionDependentRecord slideRecord)
 
 	// Add the new slide into the last PersistPtr
 	// (Also need to tell it where it is)
-	int slideOffset = slideRecord.getLastOnDiskOffset();
-	slideRecord.setLastOnDiskOffset(slideOffset);
+	int slideOffset = slideRecord.GetLastOnDiskOffset();
+	slideRecord.SetLastOnDiskOffset(slideOffset);
 	ptr.addSlideLookup(psrId, slideOffset);
-	LOG.atInfo().log("New slide/object ended up at {}", box(slideOffset));
+	//LOG.atInfo().log("New slide/object ended up at {}", box(slideOffset));
 
 	return psrId;
 }
 
-@Override
+
 	public MasterSheet<HSLFShape, HSLFTextParagraph> createMasterSheet()
 {
 	// TODO implement or throw exception if not supported
@@ -1241,178 +1247,178 @@ private int addPersistentObject(PositionDependentRecord slideRecord)
 /**
  * @return the handler class which holds the hslf records
  */
-@Internal
+
 	public HSLFSlideShowImpl getSlideShowImpl()
 {
 	return _hslfSlideShow;
 }
 
-@Override
-	public void close() throws IOException
+
+	public override void Close()
 {
-	_hslfSlideShow.close();
+	_hslfSlideShow.Close();
 }
 
-@Override
+
 	public Object getPersistDocument()
 {
 	return getSlideShowImpl();
 }
 
-@Override
-	public Map<String, Supplier<?>> getGenericProperties()
+
+	public IDictionary<string, Func<T>> GetGenericProperties<T>()
 {
-	return GenericRecordUtil.getGenericProperties(
-		"pictures", this::getPictureData,
-		"embeddedObjects", this::getEmbeddedObjects
+	return (IDictionary<string, Func<T>>) GenericRecordUtil.GetGenericProperties(
+		//"pictures", getPictureData,
+		"embeddedObjects", getEmbeddedObjects
 	);
 }
 
-@Override
-	public List<? extends GenericRecord> getGenericChildren()
+
+	public IList<GenericRecord> GetGenericChildren()
 {
-	return Arrays.asList(_hslfSlideShow.getRecords());
+	return (IList<GenericRecord>) Arrays.AsList(_hslfSlideShow.GetRecords());
 }
 
-@Override
-	public void write() throws IOException
+
+	public override void Write()
 {
-	getSlideShowImpl().write();
+	getSlideShowImpl().Write();
 }
 
-@Override
-	public void write(File newFile) throws IOException
+
+	public override void Write(FileInfo newFile)
 {
-	getSlideShowImpl().write(newFile);
+	getSlideShowImpl().Write(newFile);
 }
 
-@Override
+
 	public DocumentSummaryInformation getDocumentSummaryInformation()
 {
-	return getSlideShowImpl().getDocumentSummaryInformation();
+	return getSlideShowImpl().GetDocumentSummaryInformation();
 }
 
-@Override
+
 	public SummaryInformation getSummaryInformation()
 {
-	return getSlideShowImpl().getSummaryInformation();
+	return getSlideShowImpl().GetSummaryInformation();
 }
 
-@Override
+
 	public void createInformationProperties()
 {
 	getSlideShowImpl().createInformationProperties();
 }
 
-@Override
+
 	public void readProperties()
 {
-	getSlideShowImpl().readProperties();
+	getSlideShowImpl().ReadProperties();
 }
 
-@Override
-	protected PropertySet getPropertySet(String setName) throws IOException
+
+	protected PropertySet getPropertySet(String setName)
 {
-        return getSlideShowImpl().getPropertySetImpl(setName);
+        return getSlideShowImpl().GetPropertySetImpl(setName);
 }
 
-@Override
-	protected PropertySet getPropertySet(String setName, EncryptionInfo encryptionInfo) throws IOException
+
+	protected PropertySet getPropertySet(String setName, EncryptionInfo encryptionInfo)
 {
-        return getSlideShowImpl().getPropertySetImpl(setName, encryptionInfo);
+        return getSlideShowImpl().GetPropertySetImpl(setName, encryptionInfo);
 }
 
-@Override
-	protected void writeProperties() throws IOException
+
+	protected void writeProperties()
 {
-	getSlideShowImpl().writePropertiesImpl();
+	getSlideShowImpl().WritePropertiesImpl();
 }
 
-@Override
-	public void writeProperties(POIFSFileSystem outFS) throws IOException
+
+	public void writeProperties(POIFSFileSystem outFS)
 {
-	getSlideShowImpl().writeProperties(outFS);
+	getSlideShowImpl().WriteProperties(outFS);
 }
 
-@Override
-	protected void writeProperties(POIFSFileSystem outFS, List<String> writtenEntries) throws IOException
+
+		protected void writeProperties(POIFSFileSystem outFS, List<String> writtenEntries)
+		{
+			getSlideShowImpl().WritePropertiesImpl(outFS, writtenEntries);
+		}
+
+
+		protected void validateInPlaceWritePossible()
 {
-	getSlideShowImpl().writePropertiesImpl(outFS, writtenEntries);
+	getSlideShowImpl().ValidateInPlaceWritePossibleImpl();
 }
 
-@Override
-	protected void validateInPlaceWritePossible() throws IllegalStateException
+
+	public DirectoryNode GetDirectory()
 {
-	getSlideShowImpl().validateInPlaceWritePossibleImpl();
+	return getSlideShowImpl().Directory;
 }
 
-@Override
-	public DirectoryNode getDirectory()
-{
-	return getSlideShowImpl().getDirectory();
-}
 
-@Override
-	protected void clearDirectory()
-{
-	getSlideShowImpl().clearDirectoryImpl();
-}
+//	protected void clearDirectory()
+//{
+//	getSlideShowImpl().clearDirectoryImpl();
+//}
 
-@Override
-	protected boolean initDirectory()
-{
-	return getSlideShowImpl().initDirectoryImpl();
-}
 
-@Override
-	protected void replaceDirectory(DirectoryNode newDirectory) throws IOException
-{
-	getSlideShowImpl().replaceDirectoryImpl(newDirectory);
-}
+//	protected bool initDirectory()
+//{
+//	return getSlideShowImpl().initDirectoryImpl();
+//}
 
-@Override
+
+//	protected void replaceDirectory(DirectoryNode newDirectory)
+//{
+//	getSlideShowImpl().replaceDirectoryImpl(newDirectory);
+//}
+
+
 	protected String getEncryptedPropertyStreamName()
 {
-	return getSlideShowImpl().getEncryptedPropertyStreamName();
+	return getSlideShowImpl().GetEncryptedPropertyStreamName();
 }
 
-@Override
+
 	public EncryptionInfo getEncryptionInfo()
 {
-	return getSlideShowImpl().getEncryptionInfo();
+	return getSlideShowImpl().GetEncryptionInfo();
 }
 
-static EscherBSERecord addNewEscherBseRecord(EscherContainerRecord blipStore, PictureType type, byte[] imageData, int offset)
-{
-	EscherBSERecord record = new EscherBSERecord();
-	record.setRecordId(EscherBSERecord.RECORD_ID);
-	record.setOptions((short)(0x0002 | (type.nativeId << 4)));
-	record.setSize(imageData.length + HSLFPictureData.PREAMBLE_SIZE);
-	record.setUid(Arrays.copyOf(imageData, HSLFPictureData.CHECKSUM_SIZE));
+//static EscherBSERecord addNewEscherBseRecord(EscherContainerRecord blipStore, PictureType type, byte[] imageData, int offset)
+//{
+//	EscherBSERecord record = new EscherBSERecord();
+//	record.setRecordId(EscherBSERecord.RECORD_ID);
+//	record.setOptions((short)(0x0002 | (type.nativeId << 4)));
+//	record.setSize(imageData.length + HSLFPictureData.PREAMBLE_SIZE);
+//	record.setUid(Arrays.copyOf(imageData, HSLFPictureData.CHECKSUM_SIZE));
 
-	record.setBlipTypeMacOS((byte)type.nativeId);
-	record.setBlipTypeWin32((byte)type.nativeId);
+//	record.setBlipTypeMacOS((byte)type.nativeId);
+//	record.setBlipTypeWin32((byte)type.nativeId);
 
-	if (type == PictureType.EMF)
-	{
-		record.setBlipTypeMacOS((byte)PictureType.PICT.nativeId);
-	}
-	else if (type == PictureType.WMF)
-	{
-		record.setBlipTypeMacOS((byte)PictureType.PICT.nativeId);
-	}
-	else if (type == PictureType.PICT)
-	{
-		record.setBlipTypeWin32((byte)PictureType.WMF.nativeId);
-	}
+//	if (type == PictureType.EMF)
+//	{
+//		record.setBlipTypeMacOS((byte)PictureType.PICT.nativeId);
+//	}
+//	else if (type == PictureType.WMF)
+//	{
+//		record.setBlipTypeMacOS((byte)PictureType.PICT.nativeId);
+//	}
+//	else if (type == PictureType.PICT)
+//	{
+//		record.setBlipTypeWin32((byte)PictureType.WMF.nativeId);
+//	}
 
-	record.setOffset(offset);
+//	record.setOffset(offset);
 
-	blipStore.addChildRecord(record);
-	int count = blipStore.getChildCount();
-	blipStore.setOptions((short)((count << 4) | 0xF));
+//	blipStore.addChildRecord(record);
+//	int count = blipStore.getChildCount();
+//	blipStore.setOptions((short)((count << 4) | 0xF));
 
-	return record;
-}
+//	return record;
+//}
 	}
 }

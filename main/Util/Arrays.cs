@@ -67,7 +67,7 @@ namespace NPOI.Util
         /// <summary>
         /// Assigns the specified byte value to each element of the specified
         /// range of the specified array of bytes.  The range to be filled
-        /// extends from index <tt>fromIndex</tt>, inclusive, to index
+        /// : from index <tt>fromIndex</tt>, inclusive, to index
         /// <tt>toIndex</tt>, exclusive.  (If <tt>fromIndex==toIndex</tt>, the
         /// range to be filled is empty.)
         /// </summary>

@@ -29,7 +29,7 @@ namespace NPOI.SS.Formula.Functions
  */
     public class WeekdayFunc : Function
     {
-        //or:  extends Var1or2ArgFunction {
+        //or:  : Var1or2ArgFunction {
 
         public static Function instance = new WeekdayFunc();
 

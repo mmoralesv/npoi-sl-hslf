@@ -29,29 +29,29 @@ namespace NPOI.SL.UserModel
 		 *
 		 * @since POI 4.0.0
 		 */
-		string getSlideName();
+		string GetSlideName();
 
-		Notes<S, P> getNotes();
-		void setNotes(Notes<S, P> notes);
+		Notes<S, P> GetNotes();
+		void SetNotes(Notes<S, P> notes);
 
-		bool getFollowMasterBackground();
-		void setFollowMasterBackground(bool follow);
+		bool GetFollowMasterBackground();
+		void SetFollowMasterBackground(bool follow);
 
-		bool getFollowMasterColourScheme();
-		void setFollowMasterColourScheme(bool follow);
+		bool GetFollowMasterColourScheme();
+		void SetFollowMasterColourScheme(bool follow);
 
-		bool getFollowMasterObjects();
-		void setFollowMasterObjects(bool follow);
+		bool GetFollowMasterObjects();
+		void SetFollowMasterObjects(bool follow);
 
 		/**
      * @return the 1-based slide no.
      */
-		int getSlideNumber();
+		int GetSlideNumber();
 
 		/**
 		 * @return title of this slide or null if title is not set
 		 */
-		string getTitle();
+		string GetTitle();
 
 		/**
 		 * In XSLF, slidenumber and date shapes aren't marked as placeholders
@@ -62,7 +62,7 @@ namespace NPOI.SL.UserModel
 		 * @return {@code true} if the placeholder should be displayed/rendered
 		 * @since POI 5.2.0
 		*/
-		bool getDisplayPlaceholder(SimpleShape<S, P> placeholderRefShape);
+		bool GetDisplayPlaceholder(SimpleShape<S, P> placeholderRefShape);
 
 		/**
 		 * Sets the slide visibility
@@ -71,13 +71,13 @@ namespace NPOI.SL.UserModel
 		 *
 		 * @since POI 4.0.0
 		 */
-		void setHidden(bool hidden);
+		void SetHidden(bool hidden);
 
 		/**
 		 * @return the slide visibility, the slide is hidden when {@code true} - or shown when {@code false}
 		 *
 		 * @since POI 4.0.0
 		 */
-		bool isHidden();
+		bool IsHidden();
 	}
 }

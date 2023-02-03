@@ -1,4 +1,4 @@
-﻿/* ====================================================================
+/* ====================================================================
    Licensed to the Apache Software Foundation (ASF) under one or more
    contributor license agreements.  See the NOTICE file distributed with
    this work for additional information regarding copyright ownership.
@@ -19,10 +19,11 @@ using NPOI.Common.UserModel.Fonts;
 using NPOI.Util;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace NPOI.HSLF.Record
 {
-	public class HSLFFontInfo: FontInfo
+	public class HSLFFontInfo : FontInfo
 	{
 		public enum FontRenderType
 		{
@@ -30,13 +31,13 @@ namespace NPOI.HSLF.Record
 		}
 
 		/** A bit that specifies whether a subset of this font is embedded. */
-		private static BitField FLAGS_EMBED_SUBSETTED      = BitFieldFactory.GetInstance(0x01);
-    /** Bits that specifies whether the font is a raster,device or truetype font. */
-    private static BitField FLAGS_RENDER_FONTTYPE      = BitFieldFactory.GetInstance(0x07);
-    /** A bit that specifies whether font substitution logic is not applied for this font. */
-    private static BitField FLAGS_NO_FONT_SUBSTITUTION = BitFieldFactory.GetInstance(0x08);
-    
-    private int index = -1;
+		private static BitField FLAGS_EMBED_SUBSETTED = BitFieldFactory.GetInstance(0x01);
+		/** Bits that specifies whether the font is a raster,device or truetype font. */
+		private static BitField FLAGS_RENDER_FONTTYPE = BitFieldFactory.GetInstance(0x07);
+		/** A bit that specifies whether font substitution logic is not applied for this font. */
+		private static BitField FLAGS_NO_FONT_SUBSTITUTION = BitFieldFactory.GetInstance(0x08);
+
+		private int index = -1;
 		private String typeface = "undefined";
 		private FontCharset charset = FontCharset.ANSI;
 		private FontRenderType renderType = FontRenderType.truetype;
@@ -86,7 +87,7 @@ namespace NPOI.HSLF.Record
 
 			byte pitchAndFamily = (byte)fontAtom.GetPitchAndFamily();
 			SetPitch(FontPitch.ValueOfPitchFamily(pitchAndFamily));
-			SetFamily(FontFamily.ValueOfPitchFamily(pitchAndFamily).native);
+			SetFamily(FontFamily.ValueOfPitchFamily(pitchAndFamily).GetNative());
 			SetEmbedSubsetted(FLAGS_EMBED_SUBSETTED.IsSet(fontAtom.GetFontFlags()));
 			SetFontSubstitutable(!FLAGS_NO_FONT_SUBSTITUTION.IsSet(fontAtom.GetFontType()));
 		}
@@ -98,7 +99,8 @@ namespace NPOI.HSLF.Record
 			SetCharset(fontInfo.GetCharset());
 			SetFamily(fontInfo.GetFamily());
 			SetPitch(fontInfo.GetPitch());
-			if (fontInfo is HSLFFontInfo) {
+			if (fontInfo is HSLFFontInfo)
+			{
 				HSLFFontInfo hFontInfo = (HSLFFontInfo)fontInfo;
 				SetRenderType(hFontInfo.GetRenderType());
 				SetEmbedSubsetted(hFontInfo.IsEmbedSubsetted());
@@ -107,25 +109,25 @@ namespace NPOI.HSLF.Record
 		}
 
 		//@Override
-	public int GetIndex()
+		public int GetIndex()
 		{
 			return index;
 		}
 
 		//@Override
-	public void SetIndex(int index)
+		public void SetIndex(int index)
 		{
 			this.index = index;
 		}
 
 		//@Override
-	public String GetTypeface()
+		public String GetTypeface()
 		{
 			return typeface;
 		}
 
 		//@Override
-	public void SetTypeface(String typeface)
+		public void SetTypeface(String typeface)
 		{
 			if (typeface == null || string.IsNullOrEmpty(typeface))
 			{
@@ -135,37 +137,37 @@ namespace NPOI.HSLF.Record
 		}
 
 		//@Override
-	public void SetCharset(FontCharset charset)
+		public void SetCharset(FontCharset charset)
 		{
 			this.charset = (charset == null) ? FontCharset.ANSI : charset;
 		}
 
 		//@Override
-	public FontCharset GetCharset()
+		public FontCharset GetCharset()
 		{
 			return charset;
 		}
 
 		//@Override
-	public FontFamilyEnum GetFamily()
+		public FontFamilyEnum GetFamily()
 		{
 			return family;
 		}
 
 		//@Override
-	public void SetFamily(FontFamilyEnum family)
+		public void SetFamily(FontFamilyEnum family)
 		{
 			this.family = (family == null) ? FontFamilyEnum.FF_SWISS : family;
 		}
 
 		//@Override
-	public FontPitchEnum GetPitch()
+		public FontPitchEnum GetPitch()
 		{
 			return pitch;
 		}
 
 		//@Override
-	public void SetPitch(FontPitchEnum pitch)
+		public void SetPitch(FontPitchEnum pitch)
 		{
 			this.pitch = (pitch == null) ? FontPitchEnum.VARIABLE : pitch;
 
@@ -230,7 +232,7 @@ namespace NPOI.HSLF.Record
 			typeFlag = FLAGS_NO_FONT_SUBSTITUTION.SetBoolean(typeFlag, IsFontSubstitutable());
 			fnt.SetFontType(typeFlag);
 
-			fnt.SetPitchAndFamily(FontPitch.GetNativeId(new FontPitch((int)pitch), new FontFamily((int)family)));
+			fnt.SetPitchAndFamily(FontPitch.GetNativeId(new FontPitch((int)pitch), FontFamily.ValueOf((int)family)));
 			return fnt;
 		}
 
@@ -240,13 +242,13 @@ namespace NPOI.HSLF.Record
 		}
 
 		//@Override
-	public List<FontEmbeddedData> GetFacets()
+		public List<object> GetFacets()
 		{
-			return facets;
+			return facets.Select(item => (object)item).ToList();
 		}
 
 		//@Internal
-	public FontEntityAtom GetFontEntityAtom()
+		public FontEntityAtom GetFontEntityAtom()
 		{
 			return fontEntityAtom;
 		}
@@ -261,9 +263,6 @@ namespace NPOI.HSLF.Record
 			throw new NotImplementedException();
 		}
 
-		List<T> FontInfo.GetFacets<T>()
-		{
-			throw new NotImplementedException();
-		}
+		
 	}
 }

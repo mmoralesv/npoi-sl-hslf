@@ -99,7 +99,7 @@ namespace NPOI.SL.Extractor
 		//Override
 	    public POITextExtractor getMetadataTextExtractor()
 		{
-			return slideshow.getMetadataTextExtractor();
+			return slideshow.GetMetadataTextExtractor();
 		}
 	
 	    /**
@@ -172,7 +172,7 @@ namespace NPOI.SL.Extractor
 				if (shape is TextShape<S,P>) 
 				{
 					TextShape<S, P> ts = (TextShape<S, P>)shape;
-					string text = ts.getText();
+					string text = ts.GetText();
 					if (text == null || string.IsNullOrEmpty(text) || "*".Equals(text))
 					{
 						continue;
@@ -185,7 +185,7 @@ namespace NPOI.SL.Extractor
 						continue;
 					}
 
-					printTextParagraphs(ts.getTextParagraphs(), consumer);
+					printTextParagraphs(ts.GetTextParagraphs(), consumer);
 				}
 			}
 		}
@@ -247,13 +247,13 @@ namespace NPOI.SL.Extractor
 				switch (pd.getPlaceholder().nativeEnum)
 				{
 					case "HEADER":
-						printTextParagraphs(ts.getTextParagraphs(), consumer);
+						printTextParagraphs(ts.GetTextParagraphs(), consumer);
 						break;
 					case "FOOTER":
-						printTextParagraphs(ts.getTextParagraphs(), footerCon);
+						printTextParagraphs(ts.GetTextParagraphs(), footerCon);
 						break;
 					case "SLIDE_NUMBER":
-						printTextParagraphs(ts.getTextParagraphs(), footerCon, "\n", SlideShowExtractor<S,P>.replaceSlideNumber);
+						printTextParagraphs(ts.GetTextParagraphs(), footerCon, "\n", SlideShowExtractor<S,P>.replaceSlideNumber);
 						break;
 					case "DATETIME":
 					// currently not supported
@@ -288,7 +288,7 @@ namespace NPOI.SL.Extractor
 			{
 				if (shape is TextShape<S,P>) 
 				{
-					printTextParagraphs(((TextShape<S, P>)shape).getTextParagraphs(), consumer);
+					printTextParagraphs(((TextShape<S, P>)shape).GetTextParagraphs(), consumer);
 				} else if (shape is TableShape<S,P>) 
 				{
 					printShapeText((Slide<S, P>)(TableShape<S, P>)shape, consumer);
@@ -314,7 +314,7 @@ namespace NPOI.SL.Extractor
 					if (cell != null)
 					{
 						trailer = col < ncols - 1 ? "\t" : "\n";
-						printTextParagraphs(cell.getTextParagraphs(), consumer, trailer);
+						printTextParagraphs(cell.GetTextParagraphs(), consumer, trailer);
 					}
 				}
 				if (!trailer.Equals("\n") && filter("\n"))
@@ -331,7 +331,7 @@ namespace NPOI.SL.Extractor
 
 		private void printNotes(Slide<S, P> slide, Func<string, StringBuilder> consumer)
 		{
-			Notes<S, P> notes = slide.getNotes();
+			Notes<S, P> notes = slide.GetNotes();
 			if (notes == null)
 			{
 				return;
@@ -382,7 +382,7 @@ namespace NPOI.SL.Extractor
 			TextParagraph <S,P,TextRun> tp = tr.getParagraph();
 			TextShape <S,P> ps = (tp != null) ? tp.getParentShape() : null;
 			Sheet <S,P> sh = (ps != null) ? ps.getSheet() : null;
-			string slideNr = (sh is Slide<S,P>) ? Int32.ToString(((Slide <S,P>)sh).getSlideNumber() + 1) : "";
+			string slideNr = (sh is Slide<S,P>) ? Int32.ToString(((Slide <S,P>)sh).GetSlideNumber() + 1) : "";
 
 			return raw.replace(SLIDE_NUMBER_PH, slideNr);
 		}

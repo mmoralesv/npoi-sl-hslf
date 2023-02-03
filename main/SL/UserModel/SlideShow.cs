@@ -11,7 +11,7 @@ namespace NPOI.SL.UserModel
 		where	S: Shape<S,P>
 		where  P : TextParagraph<S,P, TextRun>
 	{
-		Slide<S, P> createSlide();
+		Slide<S, P> CreateSlide();
 
 		List<Slide<S, P>> Slides { get; }
 
@@ -74,7 +74,7 @@ namespace NPOI.SL.UserModel
 	     * @return {@code null} if picture data is not found in this slideshow
 	     * @since 3.15 beta 3
 	     */
-	    PictureData findPictureData(byte[] pictureData);
+	    PictureData FindPictureData(byte[] pictureData);
 
 		/**
 	     * Writes out the slideshow file the is represented by an instance of this
@@ -86,14 +86,14 @@ namespace NPOI.SL.UserModel
 	     *             If there is an unexpected IOException from the passed in
 	     *             OutputStream
 	     */
-	    void write(OutputStream _out);
+	    void Write(OutputStream _out);
 
 		/**
 	     * @return an extractor for the slideshow metadata
 	     *
 	     * @since POI 4.0.0
 	     */
-	    POITextExtractor getMetadataTextExtractor();
+	    POITextExtractor GetMetadataTextExtractor();
 
 		/**
 	     * @return the instance which handles the persisting of the slideshow,
@@ -102,7 +102,7 @@ namespace NPOI.SL.UserModel
 	     *
 	     * @since POI 4.0.0
 	     */
-	    Object getPersistDocument();
+	    Object GetPersistDocument();
 
 		/**
 	     * Add an EOT font to the slideshow.
@@ -123,12 +123,12 @@ namespace NPOI.SL.UserModel
 	     * @see <a href="https://github.com/googlei18n/sfntly">googles sfntly library</a>
 	     * @see <a href="https://github.com/kiwiwings/poi-font-mbender">Example on how to subset and embed fonts</a>
 	     */
-		FontInfo addFont(InputStream fontData);
+		FontInfo AddFont(InputStream fontData);
 
 		/**
 	     * @return a list of registered fonts
 	     */
-	    List<FontInfo> getFonts();
+	    List<FontInfo> GetFonts();
 
 		void Close();
 	}

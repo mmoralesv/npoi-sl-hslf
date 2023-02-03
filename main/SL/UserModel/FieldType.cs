@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace NPOI.SL.UserModel
+﻿namespace NPOI.SL.UserModel
 {
 	/**
 	 * Type of placeholder fields

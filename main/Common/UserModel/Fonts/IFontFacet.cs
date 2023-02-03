@@ -36,9 +36,9 @@ namespace NPOI.Common.UserModel.Fonts
 		 *
 		 * @since POI 4.1.0
 		 */
-		int Weight { get; }
+		int GetWeight();
 
-		bool isItalic();
+		bool IsItalic();
 
 		/**
 	     * @return the wrapper object holding the font data

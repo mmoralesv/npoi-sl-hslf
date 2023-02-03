@@ -132,7 +132,7 @@ namespace NPOI.DDF
         /**
          * Any data recording this record.
          */
-        public byte[] RemainingData
+        public virtual byte[] RemainingData
         {
             get { return remainingData; }
             set

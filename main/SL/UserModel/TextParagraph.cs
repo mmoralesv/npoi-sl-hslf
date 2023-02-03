@@ -136,7 +136,7 @@ namespace NPOI.SL.UserModel
 	     *
 	     * @return the vertical white space before the paragraph, or null if unset
 	     */
-	    double getSpaceBefore();
+	    double GetSpaceBefore();
 
 		/**
 	     * Set the amount of vertical white space that will be present before the paragraph.
@@ -157,7 +157,7 @@ namespace NPOI.SL.UserModel
 	     *
 	     * @param spaceBefore the vertical white space before the paragraph, null to unset
 	     */
-	    void setSpaceBefore(double spaceBefore);
+	    void SetSpaceBefore(double spaceBefore);
 
 		/**
 	     * The amount of vertical white space after the paragraph
@@ -169,7 +169,7 @@ namespace NPOI.SL.UserModel
 	     *
 	     * @return the vertical white space after the paragraph or null, if unset
 	     */
-	    double getSpaceAfter();
+	    double GetSpaceAfter();
 
 		/**
 	     * Set the amount of vertical white space that will be present after the paragraph.
@@ -190,12 +190,12 @@ namespace NPOI.SL.UserModel
 	     *
 	     * @param spaceAfter the vertical white space after the paragraph, null to unset
 	     */
-	    void setSpaceAfter(double spaceAfter);
+	    void SetSpaceAfter(double spaceAfter);
 
 		/**
 	     * @return the left margin (in points) of the paragraph or null, if unset
 	     */
-	    double getLeftMargin();
+	    double GetLeftMargin();
 
 		/**
 	     * Specifies the left margin of the paragraph. This is specified in addition to the text body
@@ -204,7 +204,7 @@ namespace NPOI.SL.UserModel
 	     *
 	     * @param leftMargin the left margin (in points) or null to unset
 	     */
-	    void setLeftMargin(double leftMargin);
+	    void SetLeftMargin(double leftMargin);
 
 		/**
 	     * Specifies the right margin of the paragraph. This is specified in addition to the text body
@@ -215,30 +215,30 @@ namespace NPOI.SL.UserModel
 	     *
 	     * @return the right margin (in points) of the paragraph or null, if unset
 	     */
-	    double getRightMargin();
+	    double GetRightMargin();
 
 		/**
 	     * @param rightMargin the right margin (in points) of the paragraph
 	     */
-	    void setRightMargin(double rightMargin);
+	    void SetRightMargin(double rightMargin);
 
 		/**
 	     * @return the indent (in points) applied to the first line of text in the paragraph.
 	     *  or null, if unset
 	     */
-	    double getIndent();
+	    double GetIndent();
 
 		/**
 	     * Specifies the indent size that will be applied to the first line of text in the paragraph.
 	     *
 	     * @param indent the indent (in points) applied to the first line of text in the paragraph
 	     */
-	    void setIndent(double indent);
+	    void SetIndent(double indent);
 
 		/**
 	     * @return the text level of this paragraph (0-based). Default is 0.
 	     */
-	    int getIndentLevel();
+	    int GetIndentLevel();
 
 		/**
 	     * Specifies the particular level text properties that this paragraph will follow.
@@ -247,7 +247,7 @@ namespace NPOI.SL.UserModel
 	     *
 	     * @param level the level (0 ... 4)
 	     */
-	    void setIndentLevel(int level);
+	    void SetIndentLevel(int level);
 
 		/**
 	     * Returns the vertical line spacing that is to be used within a paragraph.
@@ -259,7 +259,7 @@ namespace NPOI.SL.UserModel
 	     *
 	     * @return the vertical line spacing or null, if unset
 	     */
-	    double getLineSpacing();
+	    double GetLineSpacing();
 
 		/**
 	     * This element specifies the vertical line spacing that is to be used within a paragraph.
@@ -282,14 +282,14 @@ namespace NPOI.SL.UserModel
 	     *
 	     * @param lineSpacing the vertical line spacing
 	     */
-	    void setLineSpacing(double lineSpacing);
+	    void SetLineSpacing(double lineSpacing);
 
-		string getDefaultFontFamily();
+		string GetDefaultFontFamily();
 
 		/**
 	     * @return the default font size, in case its not set in the textrun or null, if unset
 	     */
-	    double getDefaultFontSize();
+	    double GetDefaultFontSize();
 
 		/**
 	     * Returns the alignment that is applied to the paragraph.
@@ -299,7 +299,7 @@ namespace NPOI.SL.UserModel
 	     *
 	     * @return alignment that is applied to the paragraph
 	     */
-	    TextAlign getTextAlign();
+	    TextAlign GetTextAlign();
 
 		/**
 	     * Specifies the alignment that is to be applied to the paragraph.
@@ -308,7 +308,7 @@ namespace NPOI.SL.UserModel
 	     *
 	     * @param align text align
 	     */
-	    void setTextAlign(TextAlign align);
+	    void SetTextAlign(TextAlign align);
 
 		/**
 	     * Returns the font alignment that is applied to the paragraph.
@@ -318,31 +318,31 @@ namespace NPOI.SL.UserModel
 	     *
 	     * @return alignment that is applied to the paragraph
 	     */
-	    FontAlign getFontAlign();
+	    FontAlign GetFontAlign();
 
 		/**
 	     * @return the bullet style of the paragraph, if {@code null} then no bullets are used
 	     */
-	    BulletStyle getBulletStyle();
+	    BulletStyle GetBulletStyle();
 
 		/**
 	     * Sets the bullet styles. If no styles are given, the bullets are omitted.
 	     * Possible attributes are integer/double (bullet size), Color (bullet color),
 	     * character (bullet character), string (bullet font), AutoNumberingScheme
 	     */
-	    void setBulletStyle(params object[] styles);
+	    void SetBulletStyle(params object[] styles);
 
 		/**
 	     * @return the default size for a tab character within this paragraph in points, null if unset
 	     */
-	    double getDefaultTabSize();
+	    double GetDefaultTabSize();
 
 		TextShape<S, P> ParentShape { get; }
 
 		/**
 	     * Fetch the text runs that are contained within this block of text
 	     */
-		List<T> getTextRuns();
+		List<T> GetTextRuns();
 
 		/**
 	     * Convenience method to determine if this text paragraph is part of
@@ -365,14 +365,14 @@ namespace NPOI.SL.UserModel
 	     * @since POI 4.0.0
 	     */
 	    //@SuppressWarnings("java:S1452")
-	    List<TabStop> getTabStops();
+	    List<TabStop> GetTabStops();
 
 		/**
 	     * Set the {@link TabStop} collection
 	     *
 	     * @since POI 4.0.0
 	     */
-	    void addTabStops(double positionInPoints, TabStopTypeEnum tabStopType);
+	    void AddTabStops(double positionInPoints, TabStopTypeEnum tabStopType);
 
 		/**
 	     * Removes the tabstops of this paragraphs.
@@ -380,6 +380,6 @@ namespace NPOI.SL.UserModel
 	     *
 	     * @since POI 4.0.0
 	     */
-	    void clearTabStops();
+	    void ClearTabStops();
 	}
 }

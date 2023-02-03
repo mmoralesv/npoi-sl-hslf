@@ -25,8 +25,8 @@ namespace NPOI.HSLF.Record
 {
 	public class Document : PositionDependentRecordContainer
 	{
-		private byte[] _header;
-		private static long _type = 1000;
+		private readonly byte[] _header;
+		private static readonly long _type = 1000;
 
 		// Links to our more interesting children
 		private DocumentAtom documentAtom;
@@ -234,36 +234,21 @@ namespace NPOI.HSLF.Record
 					RemoveChild(slwt);
 				}
 			}
-			slwts = lst.ToArray(new SlideListWithText[0]);
+			slwts = lst.ToArray();
 		}
 
 		/**
 		 * We are of type 1000
 		 */
-		public long GetRecordType() { return _type; }
+		public override long GetRecordType() { return _type; }
 
 		/**
 		 * Write the contents of the record back, so it can be written
 		 *  to disk
 		 */
-		public void WriteOut(OutputStream _out)
+		public override void WriteOut(OutputStream _out)
 		{
 			WriteOut(_header[0], _header[1], _type, _children, _out);
-		}
-
-		public override int GetLastOnDiskOffset() 
-		{
-			throw new NotImplementedException();
-		}
-
-		public override void SetLastOnDiskOffset(int offset)
-		{
-			throw new NotImplementedException();
-		}
-
-		public override void UpdateOtherRecordReferences(Dictionary<int, int> oldToNewReferencesLookup)
-		{
-			throw new NotImplementedException();
 		}
 
 		public override bool IsAnAtom()
@@ -271,17 +256,7 @@ namespace NPOI.HSLF.Record
 			throw new NotImplementedException();
 		}
 
-		public override long GetRecordType()
-		{
-			throw new NotImplementedException();
-		}
-
 		public override Record[] GetChildRecords()
-		{
-			throw new NotImplementedException();
-		}
-
-		public override void WriteOut(BinaryWriter o)
 		{
 			throw new NotImplementedException();
 		}

@@ -23,14 +23,6 @@ namespace NPOI.SL.UserModel
 	using System.Drawing;
 	using System.Text;
 
-	/**
-	     * Type of placeholder fields
-	     */
-	    enum FieldType
-		{
-	        SLIDE_NUMBER, DATE_TIME
-	    }
-
 	public interface TextRun
 	{
 		string GetRawText();
@@ -116,7 +108,7 @@ namespace NPOI.SL.UserModel
 	     *
 	     * @since POI 3.17-beta2
 	     */
-		FontInfo getFontInfo(FontGroupEnum fontGroup);
+		FontInfo GetFontInfo(FontGroupEnum fontGroup);
 
 		/**
 	     * Specifies the font to be used for this text run.
