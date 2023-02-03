@@ -35,7 +35,7 @@ namespace NPOI.HSLF.UserModel
      */
         public HSLFTitleMaster(Slide record, int sheetNo) : base(record, sheetNo)
         {
-            foreach (List<HSLFTextParagraph> l in HSLFTextParagraph.findTextParagraphs(GetPPDrawing(), this))
+            foreach (List<HSLFTextParagraph> l in HSLFTextParagraph.FindTextParagraphs(GetPPDrawing(), this))
             {
                 if (!_paragraphs.Contains(l))
                 {
@@ -66,8 +66,8 @@ namespace NPOI.HSLF.UserModel
      */
         public override HSLFMasterSheet GetMasterSheet()
         {
-            SlideAtom sa = ((Slide)GetSheetContainer()).getSlideAtom();
-            int masterId = sa.getMasterID();
+            SlideAtom sa = ((Slide)GetSheetContainer()).GetSlideAtom();
+            int masterId = sa.GetMasterID();
             foreach (HSLFSlideMaster sm in GetSlideShow().GetSlideMasters())
             {
                 if (masterId == sm._getSheetNumber())

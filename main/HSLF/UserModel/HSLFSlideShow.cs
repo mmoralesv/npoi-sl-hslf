@@ -565,7 +565,7 @@ public List<HSLFNotes> getNotes()
 /**
  * Returns an array of all the normal Slide Masters found in the slideshow
  */
-	public List<HSLFSlideMaster> getSlideMasters()
+	public List<HSLFSlideMaster> GetSlideMasters()
 {
 	return _masters;
 }
