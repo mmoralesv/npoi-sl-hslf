@@ -11,7 +11,6 @@ using System.Linq;
 using NPOI.HSLF.Exceptions;
 using System.Drawing;
 using System.IO;
-(??)
 
 namespace NPOI.HSLF.UserModel
 {
@@ -38,7 +37,7 @@ namespace NPOI.HSLF.UserModel
 
 		private List<HSLFTextParagraph> parentList;
 
-		public TextShape<HSLFShape, HSLFTextParagraph> ParentShape => throw new NotImplementedException();
+		//public TextShape<HSLFShape, HSLFTextParagraph> ParentShape => throw new NotImplementedException();
 
 		//private class HSLFTabStopDecorator : TabStop
 		//{
@@ -179,7 +178,7 @@ namespace NPOI.HSLF.UserModel
 		/**
 		 * @return 0-based index of the text run in the SLWT container
 		 */
-		protected int GetIndex()
+		public int GetIndex()
 		{
 			return (_headerAtom != null) ? _headerAtom.GetIndex() : -1;
 		}
@@ -554,7 +553,7 @@ namespace NPOI.HSLF.UserModel
 					}
 					else if (ostyle is String)
 					{
-						SetBulletFont((String)ostyle);
+						//SetBulletFont((String)ostyle);
 					}
 					else if (ostyle is AutoNumberingScheme)
 					{
@@ -680,21 +679,21 @@ namespace NPOI.HSLF.UserModel
 		/**
 		 * Sets the bullet font
 		 */
-		public void SetBulletFont(String typeface)
-		{
-			if (typeface == null)
-			{
-				SetPropVal(_paragraphStyle, "bullet.font", 0);
-				SetFlag(ParagraphFlagsTextProp.BULLET_HARDFONT_IDX, false);
-				return;
-			}
+		//public void SetBulletFont(String typeface)
+		//{
+		//	if (typeface == null)
+		//	{
+		//		SetPropVal(_paragraphStyle, "bullet.font", 0);
+		//		SetFlag(ParagraphFlagsTextProp.BULLET_HARDFONT_IDX, false);
+		//		return;
+		//	}
 
-			HSLFFontInfo fi = new HSLFFontInfo(typeface);
-			fi = GetSheet().GetSlideShow().AddFont(fi);
+		//	HSLFFontInfo fi = new HSLFFontInfo(typeface);
+		//	fi = GetSheet().GetSlideShow().AddFont(fi);
 
-			SetParagraphTextPropVal("bullet.font", fi.GetIndex());
-			SetFlag(ParagraphFlagsTextProp.BULLET_HARDFONT_IDX, true);
-		}
+		//	SetParagraphTextPropVal("bullet.font", fi.GetIndex());
+		//	SetFlag(ParagraphFlagsTextProp.BULLET_HARDFONT_IDX, true);
+		//}
 
 		/**
 		 * Returns the bullet font
@@ -946,11 +945,11 @@ namespace NPOI.HSLF.UserModel
 		 * @param name the name of the TextProp to fetch/add
 		 * @param val the value, null if unset
 		 */
-		public void SetPropVal(TextPropCollection props, String name, int val)
-		{
-			Action<TextProp> act = val == 0 ? () => null : () => { TextProp tp = new TextProp(); tp.SetValue(val); return tp; };
-			SetPropValInner(props, name, act);
-		}
+		//public void SetPropVal(TextPropCollection props, String name, int val)
+		//{
+		//	Action<TextProp> act = val == 0 ? () => null : (value) => { TextProp tp = new TextProp(); tp.SetValue(val); return tp; };
+		//	SetPropValInner(props, name, act);
+		//}
 
 		private void SetPropValInner(TextPropCollection props, String name, Action<TextProp> handler)
 		{
@@ -1279,7 +1278,7 @@ namespace NPOI.HSLF.UserModel
 				}
 			}
 		}
-(??)		/**
+		/**
 		 * Writes the textbox records back to the document record
 		 */
 		private static void RefreshRecords(List<HSLFTextParagraph> paragraphs)
@@ -1396,9 +1395,10 @@ namespace NPOI.HSLF.UserModel
 
 		public static String GetText(List<HSLFTextParagraph> paragraphs)
 		{
+			String rawText = String.Empty;
 			if (!(paragraphs.Count == 0))
 			{
-				String rawText = GetRawText(paragraphs);
+				rawText = GetRawText(paragraphs);
 			}
 			return ToExternalString(rawText, paragraphs.ElementAt(0).GetRunType());
 		}
@@ -1493,10 +1493,10 @@ namespace NPOI.HSLF.UserModel
 		{
 			// propagate parents to parent-aware records
 			RecordContainer.HandleParentAwareRecords(wrapper);
-			int shapeId = wrapper.GetShapeId();
+			int shapeId = wrapper.getShapeId();
 			List<HSLFTextParagraph> rv = null;
 
-			OutlineTextRefAtom ota = (OutlineTextRefAtom)wrapper.FindFirstOfType(OutlineTextRefAtom.TypeID);
+			OutlineTextRefAtom ota = (OutlineTextRefAtom)wrapper.FindFirstOfType(RecordTypes.OutlineTextRefAtom.typeID);
 			if (ota != null)
 			{
 				// if we are based on an outline, there are no further records to be parsed from the wrapper
@@ -1509,7 +1509,7 @@ namespace NPOI.HSLF.UserModel
 				if (sheetRuns != null)
 				{
 
-					int idx = ota.GetTextIndex();
+					int idx = ota.getTextIndex();
 					foreach (List<HSLFTextParagraph> r in sheetRuns)
 					{
 						if (r.Count==0)
@@ -1676,7 +1676,7 @@ namespace NPOI.HSLF.UserModel
 				ApplyParagraphStyles(paragraphs, styles.GetParagraphStyles());
 				if (indents != null)
 				{
-					ApplyParagraphIndents(paragraphs, indents.GetIndents());
+					ApplyParagraphIndents(paragraphs, indents.getIndents());
 				}
 			}
 
@@ -1840,7 +1840,7 @@ namespace NPOI.HSLF.UserModel
 			int paraIdx = 0;
 			foreach (IndentProp p in paraStyles)
 			{
-				for (int ccPara = 0, ccStyle = p.GetCharactersCovered(); ccPara < ccStyle; paraIdx++)
+				for (int ccPara = 0, ccStyle = p.getCharactersCovered(); ccPara < ccStyle; paraIdx++)
 				{
 					if (paraIdx >= paragraphs.Count || ccPara >= ccStyle - 1)
 					{
@@ -1852,7 +1852,7 @@ namespace NPOI.HSLF.UserModel
 					{
 						len += trun.GetLength();
 					}
-					para.SetIndentLevel(p.GetIndentLevel());
+					para.SetIndentLevel(p.getIndentLevel());
 					ccPara += len + 1;
 				}
 			}
@@ -1869,7 +1869,7 @@ namespace NPOI.HSLF.UserModel
 		 */
 		public void SetParagraphTextPropVal(String propName, int val)
 		{
-			SetPropVal(_paragraphStyle, propName, val);
+			//SetPropVal(_paragraphStyle, propName, val);
 			SetDirty();
 		}
 
@@ -1920,7 +1920,7 @@ public bool IsDirty()
 			{
 				return false;
 			}
-			Placeholder ph = s.GetPlaceholder();
+			Placeholder ph = s.getPlaceholder();
 			if (ph == null)
 			{
 				return false;
@@ -1952,9 +1952,14 @@ public bool IsDirty()
 			throw new NotImplementedException();
 		}
 
-		IEnumerator IEnumerable.GetEnumerator()
+		IEnumerator<HSLFTextRun> IEnumerable<HSLFTextRun>.GetEnumerator()
 		{
-			throw new NotImplementedException();
+			return _runs.GetEnumerator();
+		}
+
+		System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
+		{
+			return _runs.GetEnumerator();
 		}
 	}
 }

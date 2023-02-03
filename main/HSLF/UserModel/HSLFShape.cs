@@ -75,15 +75,15 @@ namespace NPOI.HSLF.UserModel
 		/**
 		 * Create and assign the lower level escher record to this shape
 		 */
-		protected EscherContainerRecord createSpContainer(bool isChild)
-		{
-			if (_escherContainer == null)
-			{
-				_escherContainer = new EscherContainerRecord();
-				_escherContainer.SetOptions((short)15);
-			}
-			return _escherContainer;
-		}
+		//protected EscherContainerRecord createSpContainer(bool isChild)
+		//{
+		//	if (_escherContainer == null)
+		//	{
+		//		_escherContainer = new EscherContainerRecord();
+		//		_escherContainer.SetOptions((short)15);
+		//	}
+		//	return _escherContainer;
+		//}
 
 		/**
 		 *  @return the parent of this shape

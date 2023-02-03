@@ -33,79 +33,93 @@ namespace NPOI.HSLF.Record
      * the title and body text in outline view.
      */
 
-    public class OutlineTextRefAtom : RecordAtom {
-    /**
-     * record header
-     */
-    private byte[] _header;
+    public class OutlineTextRefAtom : RecordAtom
+    {
+        /**
+         * record header
+         */
+        private byte[] _header;
 
-    /**
-     * the text's index within the SlideListWithText (0 for title, 1..n for the nth body)
-     */
-    private int _index;
+        /**
+         * the text's index within the SlideListWithText (0 for title, 1..n for the nth body)
+         */
+        private int _index;
 
-    /**
-     * Build an instance of <code>OutlineTextRefAtom</code> from on-disk data
-     */
-    protected OutlineTextRefAtom(byte[] source, int start, int len) {
-        // Get the header
-        _header = Arrays.copyOfRange(source, start, start+8);
+        /**
+         * Build an instance of <code>OutlineTextRefAtom</code> from on-disk data
+         */
+        protected OutlineTextRefAtom(byte[] source, int start, int len)
+        {
+            // Get the header
+            _header = Arrays.CopyOfRange(source, start, start + 8);
 
-        // Grab the record data
-        _index = LittleEndian.getInt(source, start+8);
-    }
+            // Grab the record data
+            _index = LittleEndian.GetInt(source, start + 8);
+        }
 
-    /**
-     * Create a new instance of <code>FontEntityAtom</code>
-     */
-    protected OutlineTextRefAtom() {
-        _index = 0;
+        /**
+         * Create a new instance of <code>FontEntityAtom</code>
+         */
+        protected OutlineTextRefAtom()
+        {
+            _index = 0;
 
-        _header = new byte[8];
-        LittleEndian.putUShort(_header, 0, 0);
-        LittleEndian.putUShort(_header, 2, (int)getRecordType());
-        LittleEndian.putInt(_header, 4, 4);
-    }
+            _header = new byte[8];
+            LittleEndian.PutUShort(_header, 0, 0);
+            LittleEndian.PutUShort(_header, 2, (int)GetRecordType());
+            LittleEndian.PutInt(_header, 4, 4);
+        }
 
-    public long getRecordType() {
-        return RecordTypes.OutlineTextRefAtom.typeID;
-    }
+        public override long GetRecordType()
+        {
+            return RecordTypes.OutlineTextRefAtom.typeID;
+        }
 
-    /**
-     * Write the contents of the record back, so it can be written to disk
-     */
-    public void writeOut(OutputStream out) throws IOException {
-        out.write(_header);
+        /**
+         * Write the contents of the record back, so it can be written to disk
+         */
+        public override void WriteOut(OutputStream _out)
+        {
+            _out.Write(_header);
 
-        byte[] recdata = new byte[4];
-        LittleEndian.putInt(recdata, 0, _index);
-        out.write(recdata);
-    }
+            byte[] recdata = new byte[4];
+            LittleEndian.PutInt(recdata, 0, _index);
+            _out.Write(recdata);
+        }
 
-    /**
-     * Sets text's index within the SlideListWithText container
-     * (0 for title, 1..n for the nth body).
-     *
-     * @param idx 0-based text's index
-     */
-    public void setTextIndex(int idx){
-        _index = idx;
-    }
+        /**
+         * Sets text's index within the SlideListWithText container
+         * (0 for title, 1..n for the nth body).
+         *
+         * @param idx 0-based text's index
+         */
+        public void setTextIndex(int idx)
+        {
+            _index = idx;
+        }
 
-    /**
-     * Return text's index within the SlideListWithText container
-     * (0 for title, 1..n for the nth body).
-     *
-     * @return idx text's index
-     */
-    public int getTextIndex(){
-        return _index;
-    }
+        /**
+         * Return text's index within the SlideListWithText container
+         * (0 for title, 1..n for the nth body).
+         *
+         * @return idx text's index
+         */
+        public int getTextIndex()
+        {
+            return _index;
+        }
 
-    @Override
-    public Map<String, Supplier<?>> getGenericProperties() {
-        return GenericRecordUtil.getGenericProperties(
-            "textIndex", this::getTextIndex
-        );
+
+        public IDictionary<string, Func<T>> GetGenericProperties<T>()
+        {
+            return (IDictionary<string, Func<T>>)GenericRecordUtil.GetGenericProperties(
+                "textIndex", getTextIndex
+            );
+        }
+
+        public override IDictionary<string, Func<object>> GetGenericProperties()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

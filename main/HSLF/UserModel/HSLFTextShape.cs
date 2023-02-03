@@ -18,7 +18,9 @@
 using NPOI.Common.UserModel;
 using NPOI.DDF;
 using NPOI.HSLF.Exceptions;
+using NPOI.HSLF.Model;
 using NPOI.HSLF.Record;
+using NPOI.POIFS.Properties;
 using NPOI.SL.UserModel;
 using NPOI.Util;
 using System;
@@ -141,7 +143,7 @@ namespace NPOI.HSLF.UserModel
      *
      * @see <a href=""></a>
      */
-//    boolean alignToBaseline = false;
+//    bool alignToBaseline = false;
 
     /**
      * Create a TextBox object and initialize it from the supplied Record container.
@@ -149,27 +151,30 @@ namespace NPOI.HSLF.UserModel
      * @param escherRecord       {@code EscherSpContainer} container which holds information about this shape
      * @param parent    the parent of the shape
      */
-    protected HSLFTextShape(EscherContainerRecord escherRecord, ShapeContainer<HSLFShape,HSLFTextParagraph> parent){
-        super(escherRecord, parent);
+    protected HSLFTextShape(EscherContainerRecord escherRecord, ShapeContainer<HSLFShape,HSLFTextParagraph> parent)
+            : base(escherRecord, parent)
+		{
+        
+    }
+
+        /**
+         * Create a new TextBox. This constructor is used when a new shape is created.
+         *
+         * @param parent    the parent of this Shape. For example, if this text box is a cell
+         * in a table then the parent is Table.
+         */
+    public HSLFTextShape(ShapeContainer<HSLFShape,HSLFTextParagraph> parent)
+            :base(null, parent){
+        
+        createSpContainer(parent is HSLFGroupShape);
     }
 
     /**
      * Create a new TextBox. This constructor is used when a new shape is created.
      *
-     * @param parent    the parent of this Shape. For example, if this text box is a cell
-     * in a table then the parent is Table.
      */
-    public HSLFTextShape(ShapeContainer<HSLFShape,HSLFTextParagraph> parent){
-        super(null, parent);
-        createSpContainer(parent as HSLFGroupShape);
-    }
-
-    /**
-     * Create a new TextBox. This constructor is used when a new shape is created.
-     *
-     */
-    public HSLFTextShape(){
-        this(null);
+    public HSLFTextShape():this(null){
+        
     }
 
     /**
@@ -189,42 +194,42 @@ namespace NPOI.HSLF.UserModel
      *
      * @param sh the sheet we are adding to
      */
-    protected override void afterInsert(HSLFSheet sh)
-        {
-        base.afterInsert(sh);
+    //protected new void AfterInsert(HSLFSheet sh)
+    //    {
+    //    base.AfterInsert(sh);
 
-        storeText();
+    //    storeText();
 
-        EscherTextboxWrapper thisTxtbox = getEscherTextboxWrapper();
-        if(thisTxtbox != null){
-            GetSpContainer().addChildRecord(thisTxtbox.getEscherRecord());
+    //    EscherTextboxWrapper thisTxtbox = getEscherTextboxWrapper();
+    //    if(thisTxtbox != null){
+    //        GetSpContainer().AddChildRecord(thisTxtbox.getEscherRecord());
 
-            PPDrawing ppdrawing = sh.GetPPDrawing();
-            ppdrawing.addTextboxWrapper(thisTxtbox);
-            // Ensure the escher layer knows about the added records
-            try {
-                thisTxtbox.WriteOut(null);
-            } catch (IOException e){
-                throw new HSLFException(e);
-            }
-            bool isInitialAnchor = getAnchor().equals(new Rectangle2D.Double());
-                bool isFilledTxt = "" != getText();
-            if (isInitialAnchor && isFilledTxt) {
-                resizeToFitText();
-            }
-        }
-        foreach (HSLFTextParagraph htp in _paragraphs) {
-            htp.setShapeId(GetShapeId());
-        }
-        sh.onAddTextShape(this);
-    }
+    //        PPDrawing ppdrawing = sh.GetPPDrawing();
+    //        ppdrawing.addTextboxWrapper(thisTxtbox);
+    //        // Ensure the escher layer knows about the added records
+    //        try {
+    //            thisTxtbox.WriteOut(null);
+    //        } catch (IOException e){
+    //            throw new HSLFException(e);
+    //        }
+    //        bool isInitialAnchor = getAnchor().equals(new Rectangle2D.Double());
+    //            bool isFilledTxt = "" != getText();
+    //        if (isInitialAnchor && isFilledTxt) {
+    //            resizeToFitText();
+    //        }
+    //    }
+    //    foreach (HSLFTextParagraph htp in _paragraphs) {
+    //        htp.setShapeId(GetShapeId());
+    //    }
+    //    sh.onAddTextShape(this);
+    //}
 
     protected EscherTextboxWrapper getEscherTextboxWrapper(){
         if(_txtbox != null) {
             return _txtbox;
         }
 
-        EscherTextboxRecord textRecord = GetEscherChild(EscherTextboxRecord.RECORD_ID);
+        EscherTextboxRecord textRecord = (EscherTextboxRecord)GetEscherChild(EscherTextboxRecord.RECORD_ID);
         if (textRecord == null) {
             return null;
         }
@@ -251,83 +256,83 @@ namespace NPOI.HSLF.UserModel
     }
 
     private void createEmptyParagraph() {
-        TextHeaderAtom tha = (TextHeaderAtom)_txtbox.findFirstOfType(TextHeaderAtom._type);
+        TextHeaderAtom tha = (TextHeaderAtom)_txtbox.FindFirstOfType(TextHeaderAtom._type);
         if (tha == null) {
             tha = new TextHeaderAtom();
-            tha.setParentRecord(_txtbox);
-            _txtbox.appendChildRecord(tha);
+            tha.SetParentRecord(_txtbox);
+            _txtbox.AppendChildRecord(tha);
         }
 
-        TextBytesAtom tba = (TextBytesAtom)_txtbox.findFirstOfType(TextBytesAtom._type);
-        TextCharsAtom tca = (TextCharsAtom)_txtbox.findFirstOfType(TextCharsAtom._type);
+        TextBytesAtom tba = (TextBytesAtom)_txtbox.FindFirstOfType(TextBytesAtom._type);
+        TextCharsAtom tca = (TextCharsAtom)_txtbox.FindFirstOfType(TextCharsAtom._type);
         if (tba == null && tca == null) {
             tba = new TextBytesAtom();
-             tba.setText(new byte[0]);
-             _txtbox.appendChildRecord(tba);
+             tba.SetText(new byte[0]);
+             _txtbox.AppendChildRecord(tba);
         }
 
-        String text = ((tba != null) ? tba.getText() : tca.getText());
+        String text = ((tba != null) ? tba.GetText() : tca.GetText());
 
-        StyleTextPropAtom sta = (StyleTextPropAtom)_txtbox.findFirstOfType(StyleTextPropAtom._type);
+        StyleTextPropAtom sta = (StyleTextPropAtom)_txtbox.FindFirstOfType(StyleTextPropAtom._type);
         TextPropCollection paraStyle = null, charStyle = null;
         if (sta == null) {
-            int parSiz = text.length();
+            int parSiz = text.Length;
             sta = new StyleTextPropAtom(parSiz+1);
-            if (_paragraphs.isEmpty()) {
-                paraStyle = sta.addParagraphTextPropCollection(parSiz+1);
-                charStyle = sta.addCharacterTextPropCollection(parSiz+1);
+            if (_paragraphs.Count==0) {
+                paraStyle = sta.AddParagraphTextPropCollection(parSiz+1);
+                charStyle = sta.AddCharacterTextPropCollection(parSiz+1);
             } else {
-                for (HSLFTextParagraph htp : _paragraphs) {
+                foreach (HSLFTextParagraph htp in _paragraphs) {
                     int runsLen = 0;
-                    for (HSLFTextRun htr : htp.getTextRuns()) {
-                        runsLen += htr.getLength();
-                        charStyle = sta.addCharacterTextPropCollection(htr.getLength());
-                        htr.setCharacterStyle(charStyle);
+                    foreach (HSLFTextRun htr in htp.GetTextRuns()) {
+                        runsLen += htr.GetLength();
+                        charStyle = sta.AddCharacterTextPropCollection(htr.GetLength());
+                        htr.SetCharacterStyle(charStyle);
                     }
-                    paraStyle = sta.addParagraphTextPropCollection(runsLen);
-                    htp.setParagraphStyle(paraStyle);
+                    paraStyle = sta.AddParagraphTextPropCollection(runsLen);
+                    htp.SetParagraphStyle(paraStyle);
                 }
-                assert (paraStyle != null && charStyle != null);
+                //assert (paraStyle != null && charStyle != null);
             }
-            _txtbox.appendChildRecord(sta);
+            _txtbox.AppendChildRecord(sta);
         } else {
-            paraStyle = sta.getParagraphStyles().get(0);
-            charStyle = sta.getCharacterStyles().get(0);
+            paraStyle = sta.GetParagraphStyles().ElementAt(0);
+            charStyle = sta.GetCharacterStyles().ElementAt(0);
         }
 
-        if (_paragraphs.isEmpty()) {
+        if (_paragraphs.Count==0) {
             HSLFTextParagraph htp = new HSLFTextParagraph(tha, tba, tca, _paragraphs);
-            htp.setParagraphStyle(paraStyle);
-            htp.setParentShape(this);
-            _paragraphs.add(htp);
+            htp.SetParagraphStyle(paraStyle);
+            htp.SetParentShape(this);
+            _paragraphs.Add(htp);
 
             HSLFTextRun htr = new HSLFTextRun(htp);
-            htr.setCharacterStyle(charStyle);
-            htr.setText(text);
-            htp.addTextRun(htr);
+            htr.SetCharacterStyle(charStyle);
+            htr.SetText(text);
+            htp.AddTextRun(htr);
         }
     }
 
-    public override Rectangle2D resizeToFitText() {
-        return resizeToFitText(null);
-    }
+    //public override Rectangle2D resizeToFitText() {
+    //    return resizeToFitText(null);
+    //}
 
-    public override Rectangle2D resizeToFitText(Graphics2D graphics) {
-        Rectangle2D anchor = getAnchor();
-        if(anchor.getWidth() == 0.) {
-            LOG.atWarn().log("Width of shape wasn't set. Defaulting to 200px");
-            anchor.setRect(anchor.getX(), anchor.getY(), 200., anchor.getHeight());
-            setAnchor(anchor);
-        }
-        double height = getTextHeight(graphics);
-        height += 1; // add a pixel to compensate rounding errors
+    //public override Rectangle2D resizeToFitText(Graphics2D graphics) {
+    //    Rectangle2D anchor = getAnchor();
+    //    if(anchor.getWidth() == 0.) {
+    //        LOG.atWarn().log("Width of shape wasn't set. Defaulting to 200px");
+    //        anchor.setRect(anchor.getX(), anchor.getY(), 200., anchor.getHeight());
+    //        setAnchor(anchor);
+    //    }
+    //    double height = getTextHeight(graphics);
+    //    height += 1; // add a pixel to compensate rounding errors
 
-        Insets2D insets = getInsets();
-        anchor.setRect(anchor.getX(), anchor.getY(), anchor.getWidth(), height+insets.top+insets.bottom);
-        setAnchor(anchor);
+    //    Insets2D insets = getInsets();
+    //    anchor.setRect(anchor.getX(), anchor.getY(), anchor.getWidth(), height+insets.top+insets.bottom);
+    //    setAnchor(anchor);
 
-        return anchor;
-    }
+    //    return anchor;
+    //}
 
     /**
     * Returns the type of the text, from the TextHeaderAtom.
@@ -339,8 +344,8 @@ namespace NPOI.HSLF.UserModel
         if (_txtbox == null) {
             return -1;
         }
-        List<HSLFTextParagraph> paras = HSLFTextParagraph.findTextParagraphs(_txtbox, getSheet());
-        return (paras.isEmpty() || paras.get(0).getIndex() == -1) ? -1 : paras.get(0).getRunType();
+        List<HSLFTextParagraph> paras = HSLFTextParagraph.FindTextParagraphs(_txtbox, GetSheet());
+        return (paras.Count==0 || paras.ElementAt(0).GetIndex() == -1) ? -1 : paras.ElementAt(0).GetRunType();
     }
 
     /**
@@ -354,9 +359,9 @@ namespace NPOI.HSLF.UserModel
         if (_txtbox == null) {
             return;
         }
-        List<HSLFTextParagraph> paras = HSLFTextParagraph.findTextParagraphs(_txtbox, getSheet());
-        if (!paras.isEmpty()) {
-            paras.get(0).setRunType(type);
+        List<HSLFTextParagraph> paras = HSLFTextParagraph.FindTextParagraphs(_txtbox, GetSheet());
+        if (!(paras.Count==0)) {
+            paras.ElementAt(0).SetRunType(type);
         }
     }
 
@@ -386,7 +391,7 @@ namespace NPOI.HSLF.UserModel
                     align = (TextPlaceholder.isTitle(type)) ? fromHSLFTextAnchorEnum(HSLFTextAnchorEnum.MIDDLE) : fromHSLFTextAnchorEnum(HSLFTextAnchor.TOP);
             }
         } else {
-            align = fromHSLFTextAnchorEnum(prop.PropertyValue);
+            align = fromHSLFTextAnchorEnum((HSLFTextAnchorEnum)prop.PropertyValue);
         }
 
         return (align == null) ?  HSLFTextAnchor.TOP : align;
@@ -400,7 +405,7 @@ namespace NPOI.HSLF.UserModel
      * @param vAlign vertical alignment
      * @param baseline aligned to baseline?
      */
-    /* package */ void setAlignment(Boolean isCentered, VerticalAlignment vAlign, boolean baseline) {
+    /* package */ void setAlignment(bool isCentered, VerticalAlignment vAlign, bool baseline) {
         for (HSLFTextAnchor hta : HSLFTextAnchor.values()) {
             if (
                 (hta.centered == (isCentered != null && isCentered)) &&
@@ -417,7 +422,7 @@ namespace NPOI.HSLF.UserModel
      * @return true, if vertical alignment is relative to baseline
      * this is only used for older versions less equals Office 2003
      */
-    public boolean isAlignToBaseline() {
+    public bool isAlignToBaseline() {
         return getAlignment().baseline;
     }
 
@@ -426,17 +431,17 @@ namespace NPOI.HSLF.UserModel
      *
      * @param alignToBaseline if true, vertical alignment is relative to baseline
      */
-    public void setAlignToBaseline(boolean alignToBaseline) {
+    public void setAlignToBaseline(bool alignToBaseline) {
         setAlignment(isHorizontalCentered(), getVerticalAlignment(), alignToBaseline);
     }
 
     
-    public boolean isHorizontalCentered() {
+    public bool isHorizontalCentered() {
         return getAlignment().centered;
     }
 
     
-    public void setHorizontalCentered(Boolean isCentered) {
+    public void setHorizontalCentered(bool isCentered) {
         setAlignment(isCentered, getVerticalAlignment(), getAlignment().baseline);
     }
 
@@ -802,7 +807,7 @@ namespace NPOI.HSLF.UserModel
     }
 
     
-    public HSLFTextRun appendText(String text, boolean newParagraph) {
+    public HSLFTextRun appendText(String text, bool newParagraph) {
         // init paragraphs
         List<HSLFTextParagraph> paras = getTextParagraphs();
         HSLFTextRun htr = HSLFTextParagraph.appendText(paras, text, newParagraph);

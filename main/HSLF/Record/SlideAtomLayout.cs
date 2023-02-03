@@ -14,6 +14,7 @@
    See the License for the specific language governing permissions and
    limitations under the License.
 ==================================================================== */
+using NPOI.Common.UserModel;
 using NPOI.Util;
 using System;
 using System.Collections.Generic;
@@ -30,8 +31,8 @@ namespace NPOI.HSLF.Record
      *
      * This might eventually merged with the XSLF counterpart
      */
-    @Internal
-public class SlideAtomLayout implements GenericRecord {
+    
+public class SlideAtomLayout : GenericRecord {
     // The different kinds of geometry
     public enum SlideLayoutType {
         /** One title and one subtitle placeholder shapes. */

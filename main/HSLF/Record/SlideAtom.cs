@@ -29,138 +29,143 @@ namespace NPOI.HSLF.Record
      * It also has a SSlideLayoutAtom embedded in it, but without the Atom header
      */
 
-    public class SlideAtom : RecordAtom {
-    public static int USES_MASTER_SLIDE_ID  =  0x80000000;
-    // private static int MASTER_SLIDE_ID      =  0x00000000;
+    public class SlideAtom : RecordAtom
+    {
+        public static int USES_MASTER_SLIDE_ID = 0x80000000;
+        // private static int MASTER_SLIDE_ID      =  0x00000000;
 
-    private byte[] _header;
-    private static long _type = 1007L;
+        private byte[] _header;
+        private static long _type = 1007L;
 
-    private int masterID;
-    private int notesID;
+        private int masterID;
+        private int notesID;
 
-    private boolean followMasterObjects;
-    private boolean followMasterScheme;
-    private boolean followMasterBackground;
-    private SlideAtomLayout layoutAtom;
-    private byte[] reserved;
-
-
-    /** Get the ID of the master slide used. 0 if this is a master slide, otherwise -2147483648 */
-    public int getMasterID() { return masterID; }
-    /** Change slide master.  */
-    public void setMasterID(int id) { masterID = id; }
-    /** Get the ID of the notes for this slide. 0 if doesn't have one */
-    public int getNotesID()  { return notesID; }
-    /** Get the embedded SSlideLayoutAtom */
-    public SlideAtomLayout getSSlideLayoutAtom() { return layoutAtom; }
-
-    /** Change the ID of the notes for this slide. 0 if it no longer has one */
-    public void setNotesID(int id) { notesID = id; }
-
-    public boolean getFollowMasterObjects()    { return followMasterObjects; }
-    public boolean getFollowMasterScheme()     { return followMasterScheme; }
-    public boolean getFollowMasterBackground() { return followMasterBackground; }
-    public void setFollowMasterObjects(boolean flag)    { followMasterObjects = flag; }
-    public void setFollowMasterScheme(boolean flag)     { followMasterScheme = flag; }
-    public void setFollowMasterBackground(boolean flag) { followMasterBackground = flag; }
+        private bool followMasterObjects;
+        private bool followMasterScheme;
+        private bool followMasterBackground;
+        private SlideAtomLayout layoutAtom;
+        private byte[] reserved;
 
 
-    /* *************** record code follows ********************** */
+        /** Get the ID of the master slide used. 0 if this is a master slide, otherwise -2147483648 */
+        public int getMasterID() { return masterID; }
+        /** Change slide master.  */
+        public void setMasterID(int id) { masterID = id; }
+        /** Get the ID of the notes for this slide. 0 if doesn't have one */
+        public int getNotesID() { return notesID; }
+        /** Get the embedded SSlideLayoutAtom */
+        public SlideAtomLayout getSSlideLayoutAtom() { return layoutAtom; }
 
-    /**
-     * For the Slide Atom
-     */
-    protected SlideAtom(byte[] source, int start, int len) {
-        // Sanity Checking
-        if(len < 30) { len = 30; }
+        /** Change the ID of the notes for this slide. 0 if it no longer has one */
+        public void setNotesID(int id) { notesID = id; }
 
-        // Get the header
-        _header = Arrays.copyOfRange(source, start, start+8);
+        public bool getFollowMasterObjects() { return followMasterObjects; }
+        public bool getFollowMasterScheme() { return followMasterScheme; }
+        public bool getFollowMasterBackground() { return followMasterBackground; }
+        public void setFollowMasterObjects(bool flag) { followMasterObjects = flag; }
+        public void setFollowMasterScheme(bool flag) { followMasterScheme = flag; }
+        public void setFollowMasterBackground(bool flag) { followMasterBackground = flag; }
 
-        // Grab the 12 bytes that is "SSlideLayoutAtom"
-        byte[] SSlideLayoutAtomData = Arrays.copyOfRange(source,start+8, start+12+8);
-        // Use them to build up the SSlideLayoutAtom
-        layoutAtom = new SlideAtomLayout(SSlideLayoutAtomData);
 
-        // Get the IDs of the master and notes
-        masterID = LittleEndian.getInt(source,start+12+8);
-        notesID = LittleEndian.getInt(source,start+16+8);
+        /* *************** record code follows ********************** */
 
-        // Grok the flags, stored as bits
-        int flags = LittleEndian.getUShort(source,start+20+8);
-        followMasterBackground = (flags & 4) == 4;
-        followMasterScheme = (flags & 2) == 2;
-        followMasterObjects = (flags & 1) == 1;
+        /**
+         * For the Slide Atom
+         */
+        protected SlideAtom(byte[] source, int start, int len)
+        {
+            // Sanity Checking
+            if (len < 30) { len = 30; }
 
-        // If there's any other bits of data, keep them about
-        // 8 bytes header + 20 bytes to flags + 2 bytes flags = 30 bytes
-        reserved = IOUtils.safelyClone(source,start+30, len-30, getMaxRecordLength());
-    }
+            // Get the header
+            _header = Arrays.CopyOfRange(source, start, start + 8);
 
-    /**
-     * Create a new SlideAtom, to go with a new Slide
-     */
-    public SlideAtom(){
-        _header = new byte[8];
-        LittleEndian.putUShort(_header, 0, 2);
-        LittleEndian.putUShort(_header, 2, (int)_type);
-        LittleEndian.putInt(_header, 4, 24);
+            // Grab the 12 bytes that is "SSlideLayoutAtom"
+            byte[] SSlideLayoutAtomData = Arrays.CopyOfRange(source, start + 8, start + 12 + 8);
+            // Use them to build up the SSlideLayoutAtom
+            layoutAtom = new SlideAtomLayout(SSlideLayoutAtomData);
 
-        byte[] ssdate = new byte[12];
-        layoutAtom = new SlideAtomLayout(ssdate);
-        layoutAtom.setGeometryType(SlideLayoutType.BLANK_SLIDE);
+            // Get the IDs of the master and notes
+            masterID = LittleEndian.GetInt(source, start + 12 + 8);
+            notesID = LittleEndian.GetInt(source, start + 16 + 8);
 
-        followMasterObjects = true;
-        followMasterScheme = true;
-        followMasterBackground = true;
-        masterID = USES_MASTER_SLIDE_ID; // -2147483648;
-        notesID = 0;
-        reserved = new byte[2];
-    }
+            // Grok the flags, stored as bits
+            int flags = LittleEndian.GetUShort(source, start + 20 + 8);
+            followMasterBackground = (flags & 4) == 4;
+            followMasterScheme = (flags & 2) == 2;
+            followMasterObjects = (flags & 1) == 1;
 
-    /**
-     * We are of type 1007
-     */
-    @Override
-    public long getRecordType() { return _type; }
+            // If there's any other bits of data, keep them about
+            // 8 bytes header + 20 bytes to flags + 2 bytes flags = 30 bytes
+            reserved = IOUtils.SafelyClone(source, start + 30, len - 30, GetMaxRecordLength());
+        }
 
-    /**
-     * Write the contents of the record back, so it can be written
-     *  to disk
-     */
-    @Override
-    public void writeOut(OutputStream out) throws IOException {
-        // Header
-        out.write(_header);
+        /**
+         * Create a new SlideAtom, to go with a new Slide
+         */
+        public SlideAtom()
+        {
+            _header = new byte[8];
+            LittleEndian.PutUShort(_header, 0, 2);
+            LittleEndian.PutUShort(_header, 2, (int)_type);
+            LittleEndian.PutInt(_header, 4, 24);
 
-        // SSSlideLayoutAtom stuff
-        layoutAtom.writeOut(out);
+            byte[] ssdate = new byte[12];
+            layoutAtom = new SlideAtomLayout(ssdate);
+            layoutAtom.SetGeometryType(SlideLayoutType.BLANK_SLIDE);
 
-        // IDs
-        writeLittleEndian(masterID, out);
-        writeLittleEndian(notesID, out);
+            followMasterObjects = true;
+            followMasterScheme = true;
+            followMasterBackground = true;
+            masterID = USES_MASTER_SLIDE_ID; // -2147483648;
+            notesID = 0;
+            reserved = new byte[2];
+        }
 
-        // Flags
-        short flags = 0;
-        if(followMasterObjects)    { flags += (short) 1; }
-        if(followMasterScheme)     { flags += (short) 2; }
-        if(followMasterBackground) { flags += (short) 4; }
-        writeLittleEndian(flags, out);
+        /**
+         * We are of type 1007
+         */
+        public long getRecordType() { return _type; }
 
-        // Reserved data
-        out.write(reserved);
-    }
+        /**
+         * Write the contents of the record back, so it can be written
+         *  to disk
+         */
 
-    @Override
-    public Map<String, Supplier<?>> getGenericProperties() {
-        return GenericRecordUtil.getGenericProperties(
-            "masterID", this::getMasterID,
-            "notesID", this::getNotesID,
-            "followMasterObjects", this::getFollowMasterObjects,
-            "followMasterScheme", this::getFollowMasterScheme,
-            "followMasterBackground", this::getFollowMasterBackground,
-            "layoutAtom", this::getSSlideLayoutAtom
-        );
+        public override void WriteOut(OutputStream _out)
+        {
+            // Header
+            _out.Write(_header);
+
+            // SSSlideLayoutAtom stuff
+            layoutAtom.WriteOut(_out);
+
+            // IDs
+            WriteLittleEndian(masterID, _out);
+            WriteLittleEndian(notesID, _out);
+
+            // Flags
+            short flags = 0;
+            if (followMasterObjects) { flags += (short)1; }
+            if (followMasterScheme) { flags += (short)2; }
+            if (followMasterBackground) { flags += (short)4; }
+            WriteLittleEndian(flags, _out);
+
+            // Reserved data
+            _out.Write(reserved);
+        }
+
+
+        public IDictionary<string, Func<T>> GetGenericProperties<T>()
+        {
+            return (IDictionary<string, Func<T>>)GenericRecordUtil.GetGenericProperties(
+                "masterID", () => getMasterID(),
+                "notesID", () => getNotesID(),
+                "followMasterObjects", () => getFollowMasterObjects(),
+                "followMasterScheme", () => getFollowMasterScheme(),
+                "followMasterBackground", () => getFollowMasterBackground(),
+                "layoutAtom", getSSlideLayoutAtom
+            );
+        }
     }
 }

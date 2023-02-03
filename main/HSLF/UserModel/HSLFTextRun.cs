@@ -23,6 +23,7 @@ using NPOI.HSLF.Record;
 using NPOI.SL.UserModel;
 using NPOI.Util;
 using System;
+using System.Drawing;
 using static NPOI.HSLF.Model.TextPropCollection;
 
 namespace NPOI.HSLF.UserModel
@@ -41,6 +42,12 @@ namespace NPOI.HSLF.UserModel
 		 * Note - we may share these styles with other RichTextRuns
 		 */
 		private TextPropCollection characterStyle = new TextPropCollection(1, TextPropType.character);
+
+		public TextCap TextCap => throw new NotImplementedException();
+
+		public IPaintStyle FontColor { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+		public double FontSize { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+		public string FontFamily { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
 		/**
 		 * Create a new wrapper around a rich text string
@@ -65,17 +72,17 @@ namespace NPOI.HSLF.UserModel
 		/**
 		 * Supply the SlideShow we belong to
 		 */
-		public void UpdateSheet()
-		{
-			if (cachedFontInfo != null)
-			{
-				foreach (FontGroupEnum tt in Enum.GetValues(typeof(FontGroupEnum)))
-				{
-					SetFontInfo(cachedFontInfo[(int)tt], tt);
-				}
-				cachedFontInfo = null;
-			}
-		}
+		//public void UpdateSheet()
+		//{
+		//	if (cachedFontInfo != null)
+		//	{
+		//		foreach (FontGroupEnum tt in Enum.GetValues(typeof(FontGroupEnum)))
+		//		{
+		//			SetFontInfo(cachedFontInfo[(int)tt], tt);
+		//		}
+		//		cachedFontInfo = null;
+		//	}
+		//}
 
 		/**
 		 * Get the length of the text
@@ -181,10 +188,10 @@ namespace NPOI.HSLF.UserModel
 		 * @param propName The name of the Paragraph TextProp
 		 * @param val The value to set for the TextProp
 		 */
-		public void SetCharTextPropVal(String propName, int val)
-		{
-			GetTextParagraph().SetPropVal(characterStyle, propName, val);
-		}
+		//public void SetCharTextPropVal(String propName, int val)
+		//{
+		//	GetTextParagraph().SetPropVal(characterStyle, propName, val);
+		//}
 
 
 		// --------------- Friendly getters / setters on rich text properties -------
@@ -285,10 +292,10 @@ namespace NPOI.HSLF.UserModel
 		 *
 		 * @param val the percentage of the font size. If the value is positive, it is superscript, otherwise it is subscript
 		 */
-		public void SetSuperscript(int val)
-		{
-			SetCharTextPropVal("superscript", val);
-		}
+		//public void SetSuperscript(int val)
+		//{
+		//	SetCharTextPropVal("superscript", val);
+		//}
 
 		//@Override
 		public Double GetFontSize()
@@ -299,11 +306,11 @@ namespace NPOI.HSLF.UserModel
 
 
 		//@Override
-		public void SetFontSize(Double fontSize)
-		{
-			int iFontSize = (fontSize == null) ? 0 : (int)fontSize;
-			SetCharTextPropVal("font.size", iFontSize);
-		}
+		//public void SetFontSize(Double fontSize)
+		//{
+		//	int iFontSize = (fontSize == null) ? 0 : (int)fontSize;
+		//	SetCharTextPropVal("font.size", iFontSize);
+		//}
 
 		/**
 		 * Gets the font index
@@ -317,72 +324,72 @@ namespace NPOI.HSLF.UserModel
 		/**
 		 * Sets the font index
 		 */
-		public void SetFontIndex(int idx)
-		{
-			SetCharTextPropVal("font.index", idx);
-		}
+		//public void SetFontIndex(int idx)
+		//{
+		//	SetCharTextPropVal("font.index", idx);
+		//}
 
 		//@Override
-		public void SetFontFamily(String typeface)
-		{
-			SetFontFamily(typeface, FontGroupEnum.LATIN);
-		}
+		//public void SetFontFamily(String typeface)
+		//{
+		//	SetFontFamily(typeface, FontGroupEnum.LATIN);
+		//}
 
 		//@Override
-		public void SetFontFamily(String typeface, FontGroupEnum fontGroup)
-		{
-			SetFontInfo(new HSLFFontInfo(typeface), fontGroup);
-		}
+		//public void SetFontFamily(String typeface, FontGroupEnum fontGroup)
+		//{
+		//	SetFontInfo(new HSLFFontInfo(typeface), fontGroup);
+		//}
 
 		//@Override
-		public void SetFontInfo(FontInfo fontInfo, FontGroupEnum fontGroup)
-		{
-			FontGroupEnum fg = SafeFontGroup(fontGroup);
+		//public void SetFontInfo(FontInfo fontInfo, FontGroupEnum fontGroup)
+		//{
+		//	FontGroupEnum fg = SafeFontGroup(fontGroup);
 
-			HSLFSheet sheet = parentParagraph.GetSheet();
-			//@SuppressWarnings("resource")
+		//	HSLFSheet sheet = parentParagraph.GetSheet();
+		//	//@SuppressWarnings("resource")
 
-			HSLFSlideShow slideShow = (sheet == null) ? null : sheet.GetSlideShow();
-			if (sheet == null || slideShow == null)
-			{
-				// we can't set font since slideshow is not assigned yet
-				if (cachedFontInfo == null)
-				{
-					cachedFontInfo = new HSLFFontInfo[Enum.GetValues(typeof(FontGroup)).Length];
-				}
-				cachedFontInfo[(int)fg] = (fontInfo != null) ? new HSLFFontInfo(fontInfo) : null;
-				return;
-			}
+		//	HSLFSlideShow slideShow = (sheet == null) ? null : sheet.GetSlideShow();
+		//	if (sheet == null || slideShow == null)
+		//	{
+		//		// we can't set font since slideshow is not assigned yet
+		//		if (cachedFontInfo == null)
+		//		{
+		//			cachedFontInfo = new HSLFFontInfo[Enum.GetValues(typeof(FontGroup)).Length];
+		//		}
+		//		cachedFontInfo[(int)fg] = (fontInfo != null) ? new HSLFFontInfo(fontInfo) : null;
+		//		return;
+		//	}
 
-			String propName;
-			switch (fg)
-			{
-				default:
-				case FontGroupEnum.LATIN:
-					propName = "ansi.font.index";
-					break;
-				case FontGroupEnum.COMPLEX_SCRIPT:
-				// TODO: implement TextCFException10 structure
-				case FontGroupEnum.EAST_ASIAN:
-					propName = "asian.font.index";
-					break;
-				case FontGroupEnum.SYMBOL:
-					propName = "symbol.font.index";
-					break;
-			}
-
-
-			// Get the index for this font, if it is not to be removed (typeface == null)
-			int fontIdx = 0;
-			if (fontInfo != null)
-			{
-				fontIdx = slideShow.AddFont(fontInfo).getIndex();
-			}
+		//	String propName;
+		//	switch (fg)
+		//	{
+		//		default:
+		//		case FontGroupEnum.LATIN:
+		//			propName = "ansi.font.index";
+		//			break;
+		//		case FontGroupEnum.COMPLEX_SCRIPT:
+		//		// TODO: implement TextCFException10 structure
+		//		case FontGroupEnum.EAST_ASIAN:
+		//			propName = "asian.font.index";
+		//			break;
+		//		case FontGroupEnum.SYMBOL:
+		//			propName = "symbol.font.index";
+		//			break;
+		//	}
 
 
-			SetCharTextPropVal("font.index", fontIdx);
-			SetCharTextPropVal(propName, fontIdx);
-		}
+		//	// Get the index for this font, if it is not to be removed (typeface == null)
+		//	int fontIdx = 0;
+		//	if (fontInfo != null)
+		//	{
+		//		fontIdx = slideShow.AddFont(fontInfo).GetIndex();
+		//	}
+
+
+		//	SetCharTextPropVal("font.index", fontIdx);
+		//	SetCharTextPropVal(propName, fontIdx);
+		//}
 
 		//@Override
 		public String GetFontFamily()
@@ -582,6 +589,47 @@ namespace NPOI.HSLF.UserModel
 		public HSLFTextParagraph GetParagraph()
 		{
 			return parentParagraph;
+		}
+
+		public void SetFontColor(Color color)
+		{
+			throw new NotImplementedException();
+		}
+
+		FontInfo TextRun.GetFontInfo(FontGroupEnum fontGroup)
+		{
+			throw new NotImplementedException();
+		}
+
+		public Hyperlink<S, P> GetHyperlink<S, P>()
+			where S : Shape<S, P>
+			where P : TextParagraph<S, P, TextRun>
+		{
+			throw new NotImplementedException();
+		}
+
+		public Hyperlink<S, P> CreateHyperlink<S, P>()
+			where S : Shape<S, P>
+			where P : TextParagraph<S, P, TextRun>
+		{
+			throw new NotImplementedException();
+		}
+
+		public TextParagraph<S, P, TextRun> GetParagraph<S, P, T>()
+			where S : Shape<S, P>
+			where P : TextParagraph<S, P, TextRun>
+		{
+			throw new NotImplementedException();
+		}
+
+		public void SetFontFamily(string typeface, FontGroupEnum fontGroup)
+		{
+			throw new NotImplementedException();
+		}
+
+		public void SetFontInfo(FontInfo fontInfo, FontGroupEnum fontGroup)
+		{
+			throw new NotImplementedException();
 		}
 	}
 }
