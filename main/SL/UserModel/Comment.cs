@@ -23,58 +23,58 @@ namespace NPOI.SL.UserModel
 		/**
      * Get the Author of this comment
      */
-		string getAuthor();
+		string GetAuthor();
 
 		/**
 		 * Set the Author of this comment.
 		 * if the author wasn't registered before, create a new entry
 		 */
-		void setAuthor(string author);
+		void SetAuthor(string author);
 
 		/**
 		 * Get the Author's Initials of this comment
 		 */
-		string getAuthorInitials();
+		string GetAuthorInitials();
 
 		/**
 		 * Set the Author's Initials of this comment.
 		 * if the author wasn't registered before via {@link #setAuthor(String)}
 		 * this has no effect
 		 */
-		void setAuthorInitials(string initials);
+		void SetAuthorInitials(string initials);
 
 		/**
 		 * Get the text of this comment
 		 */
-		string getText();
+		string GetText();
 
 		/**
 		 * Set the text of this comment
 		 */
-		void setText(string text);
+		void SetText(string text);
 
 		/**
 		 * Gets the date the comment was made.
 		 * @return the comment date.
 		 */
-		DateTime getDate();
+		DateTime GetDate();
 
 		/**
 		 * Sets the date the comment was made.
 		 * @param date the comment date.
 		 */
-		void setDate(DateTime date);
+		void SetDate(DateTime date);
 
 		/**
 		 * Gets the offset of the comment on the page.
 		 * @return the offset.
 		 */
-		Point2D getOffset();
+		Point2D GetOffset();
 
 		/**
 		 * Sets the offset of the comment on the page.
 		 * @param offset the offset.
 		 */
-		void setOffset(Point2D offset);
+		void SetOffset(Point2D offset);
 	}
 }

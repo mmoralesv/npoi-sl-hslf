@@ -24,88 +24,96 @@ using System.Collections.Generic;
 
 namespace NPOI.HSLF.UserModel
 {
+    public class HSLFComment : Comment
+    {
+        private Comment2000 _comment2000;
 
-    public class HSLFComment implements Comment {
-    private Comment2000 _comment2000;
+        public HSLFComment(Comment2000 comment2000)
+        {
+            _comment2000 = comment2000;
+        }
 
-    public HSLFComment(Comment2000 comment2000) {
-        _comment2000 = comment2000;
-    }
+        protected Comment2000 GetComment2000()
+        {
+            return _comment2000;
+        }
 
-    protected Comment2000 getComment2000() {
-        return _comment2000;
-    }
-
-    /**
+        /**
      * Get the Author of this comment
      */
-    @Override
-    public String getAuthor() {
-        return _comment2000.getAuthor();
-    }
+        public string GetAuthor()
+        {
+            return _comment2000.GetAuthor();
+        }
 
-    /**
+        /**
      * Set the Author of this comment
      */
-    @Override
-    public void setAuthor(String author) {
-        _comment2000.setAuthor(author);
-    }
+        public void SetAuthor(String author)
+        {
+            _comment2000.SetAuthor(author);
+        }
 
-    /**
+        /**
      * Get the Author's Initials of this comment
      */
-    @Override
-    public String getAuthorInitials() {
-        return _comment2000.getAuthorInitials();
-    }
+        public String GetAuthorInitials()
+        {
+            return _comment2000.GetAuthorInitials();
+        }
 
-    /**
+        /**
      * Set the Author's Initials of this comment
      */
-    @Override
-    public void setAuthorInitials(String initials) {
-        _comment2000.setAuthorInitials(initials);
-    }
+        public void SetAuthorInitials(String initials)
+        {
+            _comment2000.SetAuthorInitials(initials);
+        }
 
-    /**
+        /**
      * Get the text of this comment
      */
-    @Override
-    public String getText() {
-        return _comment2000.getText();
-    }
+        public String GetText()
+        {
+            return _comment2000.GetText();
+        }
 
-    /**
+        /**
      * Set the text of this comment
      */
-    @Override
-    public void setText(String text) {
-        _comment2000.setText(text);
-    }
+        public void SetText(String text)
+        {
+            _comment2000.SetText(text);
+        }
 
-    @Override
-    public Date getDate() {
-        return _comment2000.getComment2000Atom().getDate();
-    }
+        DateTime Comment.GetDate()
+        {
+            throw new NotImplementedException();
+        }
 
-    @Override
-    public void setDate(Date date) {
-        _comment2000.getComment2000Atom().setDate(date);
-    }
+        public DateTime GetDate()
+        {
+            return _comment2000.GetComment2000Atom().GetDate();
+        }
 
-    @Override
-    public Point2D getOffset() {
-        double x = Units.masterToPoints(_comment2000.getComment2000Atom().getXOffset());
-        double y = Units.masterToPoints(_comment2000.getComment2000Atom().getYOffset());
-        return new Point2D.Double(x, y);
-    }
+        public void SetDate(DateTime date)
+        {
+            _comment2000.GetComment2000Atom().SetDate(date);
+        }
 
-    @Override
-    public void setOffset(Point2D offset) {
-        int x = Units.pointsToMaster(offset.getX());
-        int y = Units.pointsToMaster(offset.getY());
-        _comment2000.getComment2000Atom().setXOffset(x);
-        _comment2000.getComment2000Atom().setYOffset(y);
+        public Point2D GetOffset()
+        {
+            double x = Units.MasterToPoints(_comment2000.GetComment2000Atom().GetXOffset());
+            double y = Units.MasterToPoints(_comment2000.GetComment2000Atom().GetYOffset());
+            return new Point2D.Double(x, y);
+        }
+
+        public void SetOffset(Point2D offset)
+        {
+            // int x = Units.PointsToMaster(offset.GetX());
+            // int y = Units.PointsToMaster(offset.GetY());
+            // _comment2000.GetComment2000Atom().SetXOffset(x);
+            // _comment2000.GetComment2000Atom().SetYOffset(y);
+        }
     }
 }

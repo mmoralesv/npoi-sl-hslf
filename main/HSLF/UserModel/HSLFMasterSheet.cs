@@ -15,27 +15,40 @@
    limitations under the License.
 ==================================================================== */
 
-using NPOI.Common.UserModel;
-using NPOI.HSLF.Model;
-using NPOI.HSLF.Record;
-using NPOI.SL.UserModel;
-using NPOI.Util;
-using System;
-using System.Collections.Generic;
+
+
+
+
 
 namespace NPOI.HSLF.UserModel
 {
-	public abstract class HSLFMasterSheet: HSLFSheet, MasterSheet<HSLFShape, HSLFTextParagraph>
-	{
-		public HSLFMasterSheet(SheetContainer container, int sheetNo)
-			: base(container, sheetNo)
-		{
-			
-		}
-		public abstract TextPropCollection GetPropCollection(int txtype, int v, string pn, bool isChar);
-		
+    using NPOI.HSLF.Record;
+    using NPOI.SL.UserModel;
+    using System;
+    using NPOI.HSLF.Model;
 
-		
+    /**
+     * The superclass of all master sheets - Slide masters, Notes masters, etc.
+     */
+    public abstract class HSLFMasterSheet : HSLFSheet, MasterSheet<HSLFShape, HSLFTextParagraph>
+    {
+        public HSLFMasterSheet(SheetContainer container, int sheetNo) : base(container, sheetNo)
+        {
+        }
 
-	}
+        /**
+     * Find the master collection for the given txtype/level/name.
+     * This is the "workhorse" which returns the default style attributes.
+     * If {@code name = "*"} return the current collection, otherwise if the name is not found
+     * in the current selection of txtype/level/name, first try lower levels then try parent types,
+     * if it wasn't found there return {@code null}.
+     * 
+     * @param txtype the {@link TextHeaderAtom} type
+     * @param level the indent level of the paragraph, if the level is not defined for the found
+     *      collection, the highest existing level will be used
+     * @param name the property name, 
+     * @param isCharacter if {@code true} use character styles, otherwise use paragraph styles
+     */
+        public abstract TextPropCollection GetPropCollection(int txtype, int level, String name, bool isCharacter);
+    }
 }

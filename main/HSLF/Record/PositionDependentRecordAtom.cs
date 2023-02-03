@@ -15,42 +15,59 @@
    limitations under the License.
 ==================================================================== */
 
-using NPOI.Util;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Text;
-
 namespace NPOI.HSLF.Record
 {
-
+    using Util;
+    using System;
+    using System.Collections.Generic;
+    
     /**
      * A special (and dangerous) kind of Record Atom that cares about where
      *  it lives on the disk, or who has other Atoms that care about where
      *  this is on the disk.
      */
 
-    public abstract class PositionDependentRecordAtom : RecordAtom implements PositionDependentRecord
-{
-    /** Our location on the disk, as of the last write out */
-    private int myLastOnDiskOffset;
+    public abstract class PositionDependentRecordAtom : RecordAtom, PositionDependentRecord
+    {
+        /** Our location on the disk, as of the last write out */
+        private int myLastOnDiskOffset;
 
-    /** Fetch our location on the disk, as of the last write out */
-    public int getLastOnDiskOffset() { return myLastOnDiskOffset; }
+        /** Fetch our location on the disk, as of the last write out */
+        public int getLastOnDiskOffset()
+        {
+            return myLastOnDiskOffset;
+        }
 
-    /**
+        /**
      * Update the Record's idea of where on disk it lives, after a write out.
      * Use with care...
      */
-    public void setLastOnDiskOffset(int offset) {
-        myLastOnDiskOffset = offset;
-    }
+        public void setLastOnDiskOffset(int offset)
+        {
+            myLastOnDiskOffset = offset;
+        }
 
-    /**
+        /**
      * Offer the record the list of records that have changed their
      *  location as part of the writeout.
      * Allows records to update their internal pointers to other records
      *  locations
      */
-    public abstract void updateOtherRecordReferences(Map<Integer,Integer> oldToNewReferencesLookup);
+        public abstract void UpdateOtherRecordReferences(IDictionary<Integer, Integer> oldToNewReferencesLookup);
+
+        public int GetLastOnDiskOffset()
+        {
+            throw new NotImplementedException();
+        }
+
+        public void SetLastOnDiskOffset(int offset)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void UpdateOtherRecordReferences(Dictionary<int, int> oldToNewReferencesLookup)
+        {
+            throw new NotImplementedException();
+        }
+    }
 }
