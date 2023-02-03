@@ -107,7 +107,7 @@ namespace NPOI.HSLF.UserModel
 		 * Also passes it on to our child text paragraphs
 		 */
 		//@Internal
-		protected void SetSlideShow(HSLFSlideShow ss)
+		public void SetSlideShow(HSLFSlideShow ss)
 		{
 			if (_slideShow != null)
 			{

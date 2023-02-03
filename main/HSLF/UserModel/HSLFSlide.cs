@@ -15,12 +15,15 @@
    limitations under the License.
 ==================================================================== */
 
+using NPOI.DDF;
 using NPOI.HSLF.Exceptions;
+using NPOI.HSLF.Record;
 using NPOI.SL.UserModel;
 using NPOI.SS.Formula.Functions;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using static NPOI.HSLF.Record.SlideListWithText;
 
 namespace NPOI.HSLF.UserModel
 {
@@ -40,7 +43,7 @@ namespace NPOI.HSLF.UserModel
 		 * @param notes the Notes sheet attached to us
 		 * @param atomSet the SlideAtomsSet to get the text from
 		 */
-		public HSLFSlide(org.apache.poi.hslf.record.Slide slide, HSLFNotes notes, SlideAtomsSet atomSet, int slideIdentifier, int slideNumber)
+		public HSLFSlide(Record.Slide slide, HSLFNotes notes, SlideAtomsSet atomSet, int slideIdentifier, int slideNumber)
 			:base(slide, slideIdentifier)
 		{
 			_notes = notes;
@@ -50,7 +53,7 @@ namespace NPOI.HSLF.UserModel
 			// For the text coming in from the SlideAtomsSet:
 			// Build up TextRuns from pairs of TextHeaderAtom and
 			//  one of TextBytesAtom or TextCharsAtom
-			if (_atomSet != null && _atomSet.getSlideRecords().length > 0)
+			if (_atomSet != null && _atomSet.getSlideRecords().Length > 0)
 			{
 				// Grab text from SlideListWithTexts entries
 				_paragraphs.AddRange(HSLFTextParagraph.FindTextParagraphs(_atomSet.getSlideRecords()));
@@ -99,7 +102,7 @@ namespace NPOI.HSLF.UserModel
 	public void SetNotes(Notes<HSLFShape, HSLFTextParagraph> notes)
 		{
 			if (notes != null && !(notes is HSLFNotes)) {
-				throw new IllegalArgumentException("notes needs to be of type HSLFNotes");
+				throw new ArgumentException("notes needs to be of type HSLFNotes");
 			}
 			_notes = (HSLFNotes)notes;
 
@@ -140,8 +143,8 @@ namespace NPOI.HSLF.UserModel
 	public void onCreate()
 		{
 			//initialize drawing group id
-			EscherDggRecord dgg = getSlideShow().getDocumentRecord().getPPDrawingGroup().getEscherDggRecord();
-			EscherContainerRecord dgContainer = getSheetContainer().getPPDrawing().getDgContainer();
+			EscherDggRecord dgg = GetSlideShow().getDocumentRecord().GetPPDrawingGroup().getEscherDggRecord();
+			EscherContainerRecord dgContainer = GetSheetContainer().GetPPDrawing().getDgContainer();
 			EscherDgRecord dg = HSLFShape.getEscherChild(dgContainer, EscherDgRecord.RECORD_ID);
 			int dgId = dgg.getMaxDrawingGroupId() + 1;
 			dg.setOptions((short)(dgId << 4));

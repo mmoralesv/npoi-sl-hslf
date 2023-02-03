@@ -14,6 +14,7 @@
    See the License for the specific language governing permissions and
    limitations under the License.
 ==================================================================== */
+using NPOI.DDF;
 using NPOI.Util;
 using System;
 using System.Collections.Generic;
@@ -35,8 +36,7 @@ namespace NPOI.HSLF.Record
         // no instance initialisation
     }
 
-    @Override
-    protected Supplier<? : EscherRecord> getConstructor(short options, short recordId) {
+    protected Func<EscherRecord> getConstructor(short options, short recordId) {
         if (recordId == EscherPlaceholder.RECORD_ID) {
             return EscherPlaceholder::new;
         } else if (recordId == EscherClientDataRecord.RECORD_ID) {

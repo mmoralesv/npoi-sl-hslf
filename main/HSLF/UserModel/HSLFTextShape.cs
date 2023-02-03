@@ -430,22 +430,22 @@ namespace NPOI.HSLF.UserModel
         setAlignment(isHorizontalCentered(), getVerticalAlignment(), alignToBaseline);
     }
 
-    @Override
+    
     public boolean isHorizontalCentered() {
         return getAlignment().centered;
     }
 
-    @Override
+    
     public void setHorizontalCentered(Boolean isCentered) {
         setAlignment(isCentered, getVerticalAlignment(), getAlignment().baseline);
     }
 
-    @Override
+    
     public VerticalAlignment getVerticalAlignment() {
         return getAlignment().vAlign;
     }
 
-    @Override
+    
     public void setVerticalAlignment(VerticalAlignment vAlign) {
         setAlignment(isHorizontalCentered(), vAlign, getAlignment().baseline);
     }
@@ -706,19 +706,19 @@ namespace NPOI.HSLF.UserModel
         setRightInset(insets.right);
     }
 
-    @Override
+    
     public double getTextHeight() {
         return getTextHeight(null);
     }
 
-    @Override
+    
     public double getTextHeight(Graphics2D graphics) {
         DrawFactory drawFact = DrawFactory.getInstance(graphics);
         DrawTextShape dts = drawFact.getDrawable(this);
         return dts.getTextHeight(graphics);
     }
 
-    @Override
+    
     public TextDirection getTextDirection() {
         // see 2.4.5 MSOTXFL
         AbstractEscherOptRecord opt = getEscherOptRecord();
@@ -739,7 +739,7 @@ namespace NPOI.HSLF.UserModel
         }
     }
 
-    @Override
+    
     public void setTextDirection(TextDirection orientation) {
         AbstractEscherOptRecord opt = getEscherOptRecord();
         int msotxfl;
@@ -767,7 +767,7 @@ namespace NPOI.HSLF.UserModel
         setEscherProperty(opt, EscherProperties.TEXT__TEXTFLOW, msotxfl);
     }
 
-    @Override
+    
     public Double getTextRotation() {
         // see 2.4.6 MSOCDIR
         AbstractEscherOptRecord opt = getEscherOptRecord();
@@ -775,7 +775,7 @@ namespace NPOI.HSLF.UserModel
         return (prop == null) ? null : (90. * prop.getPropertyValue());
     }
 
-    @Override
+    
     public void setTextRotation(Double rotation) {
         AbstractEscherOptRecord opt = getEscherOptRecord();
         if (rotation == null) {
@@ -795,13 +795,13 @@ namespace NPOI.HSLF.UserModel
         return HSLFTextParagraph.getRawText(getTextParagraphs());
     }
 
-    @Override
+    
     public String getText() {
         String rawText = getRawText();
         return HSLFTextParagraph.toExternalString(rawText, getRunType());
     }
 
-    @Override
+    
     public HSLFTextRun appendText(String text, boolean newParagraph) {
         // init paragraphs
         List<HSLFTextParagraph> paras = getTextParagraphs();
@@ -810,7 +810,7 @@ namespace NPOI.HSLF.UserModel
         return htr;
     }
 
-    @Override
+    
     public HSLFTextRun setText(String text) {
         // init paragraphs
         List<HSLFTextParagraph> paras = getTextParagraphs();
@@ -823,7 +823,7 @@ namespace NPOI.HSLF.UserModel
      * Saves the modified paragraphs/textrun to the records.
      * Also updates the styles to the correct text length.
      */
-    protected void storeText() {
+    public void storeText() {
         List<HSLFTextParagraph> paras = getTextParagraphs();
         HSLFTextParagraph.storeText(paras);
     }
@@ -838,7 +838,7 @@ namespace NPOI.HSLF.UserModel
         return HSLFHyperlink.find(this);
     }
 
-    @Override
+    
     public void setTextPlaceholder(TextPlaceholder placeholder) {
         // TOOD: check for correct placeholder handling - see org.apache.poi.hslf.model.Placeholder
         Placeholder ph = null;
@@ -882,7 +882,7 @@ namespace NPOI.HSLF.UserModel
         }
     }
 
-    @Override
+    
     public TextPlaceholder getTextPlaceholder() {
         return TextPlaceholder.fromNativeId(getRunType());
     }

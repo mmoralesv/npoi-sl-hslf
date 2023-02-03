@@ -99,7 +99,7 @@ namespace NPOI.SL.Extractor
 		//Override
 	    public POITextExtractor getMetadataTextExtractor()
 		{
-			return slideshow.getMetadataTextExtractor();
+			return slideshow.GetMetadataTextExtractor();
 		}
 	
 	    /**

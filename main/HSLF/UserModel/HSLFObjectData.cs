@@ -1,4 +1,4 @@
-/* ====================================================================
+﻿/* ====================================================================
    Licensed to the Apache Software Foundation (ASF) under one or more
    contributor license agreements.  See the NOTICE file distributed with
    this work for additional information regarding copyright ownership.
@@ -16,84 +16,117 @@
 ==================================================================== */
 using NPOI.Common.UserModel;
 using NPOI.HSLF.Record;
+using NPOI.POIFS.FileSystem;
 using NPOI.SL.UserModel;
 using NPOI.Util;
 using System;
 using System.Collections.Generic;
+using System.IO;
 
 namespace NPOI.HSLF.UserModel
 {
 
-    /**
+	/**
      * A class that represents object data embedded in a slide show.
      */
-    public class HSLFObjectData implements ObjectData, GenericRecord {
-    /**
-     * The record that contains the object data.
-     */
-    private ExOleObjStg storage;
+	public class HSLFObjectData : ObjectData, GenericRecord
+	{
+		/**
+         * The record that contains the object data.
+         */
+		private ExOleObjStg storage;
 
-    /**
-     * Creates the object data wrapping the record that contains the object data.
-     *
-     * @param storage the record that contains the object data.
-     */
-    public HSLFObjectData(ExOleObjStg storage) {
-        this.storage = storage;
-    }
-
-    @Override
-    public InputStream getInputStream() {
-        return storage.getData();
-    }
-
-    @Override
-    public OutputStream getOutputStream() {
-        // can't use UnsynchronizedByteArrayOutputStream here, because it's final
-        return new ByteArrayOutputStream() {
-            @Override
-            public void close() throws IOException {
-                setData(getBytes());
-            }
-        };
-    }
-
-    /**
-     * Sets the embedded data.
-     *
-     * @param data the embedded data.
-     */
-     public void setData(byte[] data) throws IOException {
-        storage.setData(data);
-    }
-
-    /**
-     * Return the record that contains the object data.
-     *
-     * @return the record that contains the object data.
-     */
-    public ExOleObjStg getExOleObjStg() {
-        return storage;
-    }
+		/**
+         * Creates the object data wrapping the record that contains the object data.
+         *
+         * @param storage the record that contains the object data.
+         */
+		public HSLFObjectData(ExOleObjStg storage)
+		{
+			this.storage = storage;
+		}
 
 
-    @Override
-    public String getOLE2ClassName() {
-        return null;
-    }
+		public InputStream GetInputStream()
+		{
+			return storage.getData();
+		}
 
-    @Override
-    public String getFileName() {
-        return null;
-    }
 
-    @Override
-    public Map<String, Supplier<?>> getGenericProperties() {
-        return null;
-    }
+		public OutputStream GetOutputStream()
+		{
+			// can't use UnsynchronizedByteArrayOutputStream here, because it's final
+			return (OutputStream)((MemoryStream)new ByteArrayOutputStream());
+		}
 
-    @Override
-    public List<? : GenericRecord> getGenericChildren() {
-        return Collections.singletonList(getExOleObjStg());
-    }
+		/**
+         * Sets the embedded data.
+         *
+         * @param data the embedded data.
+         */
+		public void SetData(byte[] data)
+		{
+			storage.setData(data);
+		}
+
+		/**
+         * Return the record that contains the object data.
+         *
+         * @return the record that contains the object data.
+         */
+		public ExOleObjStg GetExOleObjStg()
+		{
+			return storage;
+		}
+
+
+
+		public String GetOLE2ClassName()
+		{
+			return null;
+		}
+
+
+		public String GetFileName()
+		{
+			return null;
+		}
+
+
+		public IDictionary<string, Func<T>> GetGenericProperties<T>()
+		{
+			return null;
+		}
+
+
+		public List<GenericRecord> GetGenericChildren()
+		{
+			return new List<GenericRecord>() { GetExOleObjStg() };
+		}
+
+		public byte[] GetBytes()
+		{
+			throw new NotImplementedException();
+		}
+
+		public bool HasDirectoryEntry()
+		{
+			throw new NotImplementedException();
+		}
+
+		public DirectoryEntry GetDirectory()
+		{
+			throw new NotImplementedException();
+		}
+
+		public RecordTypes GetGenericRecordType()
+		{
+			throw new NotImplementedException();
+		}
+
+		IList<GenericRecord> GenericRecord.GetGenericChildren()
+		{
+			throw new NotImplementedException();
+		}
+	}
 }

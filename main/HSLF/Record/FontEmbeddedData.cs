@@ -22,17 +22,30 @@ using System.Collections.Generic;
 
 namespace NPOI.HSLF.Record
 {
-	public class FontEmbeddedData : Record
+	public class FontEmbeddedData : RecordAtom, IFontFacet
 	{
-		public override Record[] GetChildRecords()
-		{
-			MAX_RECORD_LENGTH = length;
-		}
+		private static int DEFAULT_MAX_RECORD_LENGTH = 5_000_000;
+		private static int MAX_RECORD_LENGTH = DEFAULT_MAX_RECORD_LENGTH;
+
+		/**
+		 * Record header.
+		 */
+		private byte[] _header;
+
+		/**
+		 * Record data - An EOT Font
+		 */
+		private byte[] _data;
+
+		/**
+		 * A cached FontHeader so that we don't keep creating new FontHeader instances
+		 */
+		private FontHeader fontHeader;
 
 		/**
 		 * @return the max record length allowed for FontEmbeddedData
 		 */
-		public static int GetMaxRecordLength()
+		public static new int GetMaxRecordLength()
 		{
 			return MAX_RECORD_LENGTH;
 		}
@@ -73,74 +86,74 @@ namespace NPOI.HSLF.Record
 			}
 		}
 
-		
-	public override long GetRecordType()
+
+		public override long GetRecordType()
 		{
 			return RecordTypes.FontEmbeddedData.typeID;
 		}
 
-		
-	public override void WriteOut(OutputStream _out)
-		{
-        _out.Write(_header);
-        _out.Write(_data);
-	}
 
-	/**
-     * Overwrite the font data. Reading values from this FontEmbeddedData instance while calling setFontData
-     * is not thread safe.
-     * @param fontData new font data
-     */
-	public void SetFontData(byte[] fontData)
-	{
-		fontHeader = null;
-		_data = (byte[])fontData.Clone();
-		LittleEndian.PutInt(_header, 4, _data.Length);
-	}
-
-	/**
-     * Read the font data. Reading values from this FontEmbeddedData instance while calling {@link #setFontData(byte[])}
-     * is not thread safe.
-     * @return font data
-     */
-	public FontHeader GetFontHeader()
-	{
-		if (fontHeader == null)
+		public override void WriteOut(OutputStream _out)
 		{
-			FontHeader h = new FontHeader();
-			h.init(_data, 0, _data.Length);
-			fontHeader = h;
+			_out.Write(_header);
+			_out.Write(_data);
 		}
-		return fontHeader;
-	}
 
-	
-	public int GetWeight()
-	{
-		return GetFontHeader().GetWeight();
-	}
+		/**
+		 * Overwrite the font data. Reading values from this FontEmbeddedData instance while calling setFontData
+		 * is not thread safe.
+		 * @param fontData new font data
+		 */
+		public void SetFontData(byte[] fontData)
+		{
+			fontHeader = null;
+			_data = (byte[])fontData.Clone();
+			LittleEndian.PutInt(_header, 4, _data.Length);
+		}
 
-	
-	public bool IsItalic()
-	{
-		return GetFontHeader().isItalic();
-	}
+		/**
+		 * Read the font data. Reading values from this FontEmbeddedData instance while calling {@link #setFontData(byte[])}
+		 * is not thread safe.
+		 * @return font data
+		 */
+		public FontHeader GetFontHeader()
+		{
+			if (fontHeader == null)
+			{
+				FontHeader h = new FontHeader();
+				h.init(_data, 0, _data.Length);
+				fontHeader = h;
+			}
+			return fontHeader;
+		}
 
-	public String GetTypeface()
-	{
-		return GetFontHeader().getFamilyName();
-	}
 
-	
-	public Object GetFontData()
-	{
-		return this;
-	}
+		public int GetWeight()
+		{
+			return GetFontHeader().GetWeight();
+		}
 
-	
-	public override IDictionary<string, Func<object>> GetGenericProperties()
-	{
-		return (IDictionary<string, Func<object>>)GenericRecordUtil.GetGenericProperties("fontHeader", GetFontHeader);
+
+		public bool IsItalic()
+		{
+			return GetFontHeader().isItalic();
+		}
+
+		public String GetTypeface()
+		{
+			return GetFontHeader().getFamilyName();
+		}
+
+
+		public Object GetFontData()
+		{
+			return this;
+		}
+
+
+		public override IDictionary<string, Func<object>> GetGenericProperties()
+		{
+			return (IDictionary<string, Func<object>>)GenericRecordUtil.GetGenericProperties("fontHeader", GetFontHeader);
+		}
 	}
-}
 }

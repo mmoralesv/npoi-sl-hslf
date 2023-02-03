@@ -185,7 +185,7 @@ namespace NPOI.HSLF.Extractor
 			if (type == RecordTypes.TextCharsAtom.typeID)
 			{
 				TextCharsAtom tca = (TextCharsAtom)Record.Record.CreateRecordForType(type, pptContents, startPos, len + 8);
-				String text = HSLFTextParagraph.ToExternalString(tca.getText(), -1);
+				String text = HSLFTextParagraph.ToExternalString(tca.GetText(), -1);
 				textV.Add(text);
 			}
 

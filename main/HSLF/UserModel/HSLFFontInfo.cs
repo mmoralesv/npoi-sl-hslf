@@ -86,7 +86,7 @@ namespace NPOI.HSLF.Record
 			}
 
 			byte pitchAndFamily = (byte)fontAtom.GetPitchAndFamily();
-			SetPitch(FontPitch.ValueOfPitchFamily(pitchAndFamily).GetNative());
+			SetPitch(FontPitch.ValueOfPitchFamily(pitchAndFamily));
 			SetFamily(FontFamily.ValueOfPitchFamily(pitchAndFamily).GetNative());
 			SetEmbedSubsetted(FLAGS_EMBED_SUBSETTED.IsSet(fontAtom.GetFontFlags()));
 			SetFontSubstitutable(!FLAGS_NO_FONT_SUBSTITUTION.IsSet(fontAtom.GetFontType()));

@@ -16,6 +16,7 @@
    limitations under the License.
 ==================================================================== */
 
+using NPOI.POIFS.FileSystem;
 using NPOI.Util;
 using System;
 using System.Collections.Generic;
@@ -102,7 +103,7 @@ namespace NPOI.HSLF.Record
     /**
      * Find the Current User in the filesystem, and create from that
      */
-    public CurrentUserAtom(DirectoryNode dir) throws IOException {
+    public CurrentUserAtom(DirectoryNode dir){
         // Decide how big it is
         DocumentEntry docProps =
             (DocumentEntry)dir.getEntry("Current User");

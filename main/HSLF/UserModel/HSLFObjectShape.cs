@@ -123,7 +123,7 @@ namespace NPOI.HSLF.UserModel
             int ref = exEmbed.getExOleObjAtom().getObjStgDataRef();
 
             for (HSLFObjectData hod : ole) {
-                if(hod.getExOleObjStg().getPersistId() == ref) {
+                if(hod.GetExOleObjStg().getPersistId() == ref) {
                     data=hod;
                     // keep searching to return the last persistent object with that refId
                 }

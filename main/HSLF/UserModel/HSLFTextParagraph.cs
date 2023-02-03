@@ -396,7 +396,7 @@ namespace NPOI.HSLF.UserModel
 			if (!(_runs.Count == 0))
 			{
 				HSLFTextRun tr = _runs.ElementAt(0);
-(??)				fontInfo = tr.GetFontInfo(null);
+				fontInfo = tr.GetFontInfo(FontGroupEnum.LATIN);
 				// fallback to LATIN if the font for the font group wasn't defined
 				if (fontInfo == null)
 				{
@@ -948,7 +948,8 @@ namespace NPOI.HSLF.UserModel
 		 */
 		public void SetPropVal(TextPropCollection props, String name, int val)
 		{
-			SetPropValInner(props, name, val == 0 ? () => null : tp => tp.SetValue(val));
+			Action<TextProp> act = val == 0 ? () => null : () => { TextProp tp = new TextProp(); tp.SetValue(val); return tp; };
+			SetPropValInner(props, name, act);
 		}
 
 		private void SetPropValInner(TextPropCollection props, String name, Action<TextProp> handler)

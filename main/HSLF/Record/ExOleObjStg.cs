@@ -25,7 +25,7 @@ namespace NPOI.HSLF.Record
     /**
      * Storage for embedded OLE objects.
      */
-    public class ExOleObjStg : PositionDependentRecordAtom implements PersistRecord {
+    public class ExOleObjStg : PositionDependentRecordAtom, PersistRecord {
 
     //arbitrarily selected; may need to increase
     private static int MAX_RECORD_LENGTH = 100_000_000;
