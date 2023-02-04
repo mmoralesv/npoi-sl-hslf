@@ -14,102 +14,118 @@
    See the License for the specific language governing permissions and
    limitations under the License.
 ==================================================================== */
-using NPOI.Util;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Text;
-
 namespace NPOI.HSLF.Record
 {
-
+    using NPOI.Util;
+    using System.Collections.Generic;
+    using System.Linq;
+    
     /**
      * Master container for Slides. There is one of these for every slide,
      *  and they have certain specific children
      */
 
     public class Slide : SheetContainer
-{
-    private byte[] _header;
-    private static long _type = 1006L;
+    {
+        private byte[] _header;
+        private static long _type = 1006L;
 
-    // Links to our more interesting children
-    private SlideAtom slideAtom;
-    private PPDrawing ppDrawing;
-    private ColorSchemeAtom _colorScheme;
+        // Links to our more interesting children
+        private SlideAtom slideAtom;
+        private PPDrawing ppDrawing;
+        private ColorSchemeAtom _colorScheme;
 
-    /**
+        /**
      * Returns the SlideAtom of this Slide
      */
-    public SlideAtom getSlideAtom() { return slideAtom; }
+        public SlideAtom GetSlideAtom()
+        {
+            return slideAtom;
+        }
 
-    /**
+        /**
      * Returns the PPDrawing of this Slide, which has all the
      *  interesting data in it
      */
-    public PPDrawing getPPDrawing() { return ppDrawing; }
+        public override PPDrawing GetPPDrawing()
+        {
+            return ppDrawing;
+        }
 
-
-    /**
+        /**
      * Set things up, and find our more interesting children
      */
-    protected Slide(byte[] source, int start, int len) {
-        // Grab the header
-        _header = Arrays.copyOfRange(source, start, start+8);
+        protected Slide(byte[] source, int start, int len)
+        {
+            // Grab the header
+            _header = Arrays.CopyOfRange(source, start, start+8);
 
-        // Find our children
-        _children = Record.findChildRecords(source,start+8,len-8);
+            // Find our children
+            _children = FindChildRecords(source, start + 8, len - 8);
 
-        // Find the interesting ones in there
-        for (Record child : _children) {
-            if (child instanceof SlideAtom) {
-                slideAtom = (SlideAtom) child;
-            } else if (child instanceof PPDrawing) {
-                ppDrawing = (PPDrawing) child;
-            }
+            // Find the interesting ones in there
+            foreach (Record child in _children)
+            {
+                if (child is SlideAtom)
+                {
+                    slideAtom = (SlideAtom)child;
+                }
+                else if (child is PPDrawing)
+                {
+                    ppDrawing = (PPDrawing)child;
+                }
 
-            if (ppDrawing != null && child instanceof ColorSchemeAtom) {
-                _colorScheme = (ColorSchemeAtom) child;
+                if (ppDrawing != null && child is ColorSchemeAtom)
+                {
+                    _colorScheme = (ColorSchemeAtom)child;
+                }
             }
         }
-    }
 
-    /**
+        /**
      * Create a new, empty, Slide, along with its required
      *  child records.
      */
-    public Slide(){
-        _header = new byte[8];
-        LittleEndian.putUShort(_header, 0, 15);
-        LittleEndian.putUShort(_header, 2, (int)_type);
-        LittleEndian.putInt(_header, 4, 0);
+        public Slide()
+        {
+            _header = new byte[8];
+            LittleEndian.PutUShort(_header, 0, 15);
+            LittleEndian.PutUShort(_header, 2, (int)_type);
+            LittleEndian.PutInt(_header, 4, 0);
 
-        slideAtom = new SlideAtom();
-        ppDrawing = new PPDrawing();
+            slideAtom = new SlideAtom();
+            ppDrawing = new PPDrawing();
 
-        ColorSchemeAtom colorAtom = new ColorSchemeAtom();
+            ColorSchemeAtom colorAtom = new ColorSchemeAtom();
 
-        _children = new org.apache.poi.hslf.record.Record[] {
-            slideAtom,
-            ppDrawing,
-            colorAtom
-        };
-    }
+            _children = new Record[]
+            {
+                slideAtom,
+                ppDrawing,
+                colorAtom
+            };
+        }
 
-    /**
+        /**
      * We are of type 1006
      */
-    public long getRecordType() { return _type; }
+        public override long GetRecordType()
+        {
+            return _type;
+        }
 
-    /**
+        /**
      * Write the contents of the record back, so it can be written
      *  to disk
      */
-    public void writeOut(OutputStream out) throws IOException {
-        writeOut(_header[0],_header[1],_type,_children,out);
-    }
+        public override void WriteOut(OutputStream output)
+        {
+            WriteOut(_header[0],_header[1],_type,_children,output);
+        }
 
-    public ColorSchemeAtom getColorScheme(){
-        return _colorScheme;
+        public override ColorSchemeAtom GetColorScheme()
+        {
+            return _colorScheme;
+        }
     }
 }

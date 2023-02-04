@@ -31,7 +31,7 @@ namespace NPOI.HSLF.Record
 
     public class SlideAtom : RecordAtom
     {
-        public static int USES_MASTER_SLIDE_ID = 0x80000000;
+        public static int USES_MASTER_SLIDE_ID = unchecked((int)0x80000000);
         // private static int MASTER_SLIDE_ID      =  0x00000000;
 
         private byte[] _header;
@@ -48,23 +48,23 @@ namespace NPOI.HSLF.Record
 
 
         /** Get the ID of the master slide used. 0 if this is a master slide, otherwise -2147483648 */
-        public int getMasterID() { return masterID; }
+        public int GetMasterID() { return masterID; }
         /** Change slide master.  */
-        public void setMasterID(int id) { masterID = id; }
+        public void SetMasterID(int id) { masterID = id; }
         /** Get the ID of the notes for this slide. 0 if doesn't have one */
-        public int getNotesID() { return notesID; }
+        public int GetNotesID() { return notesID; }
         /** Get the embedded SSlideLayoutAtom */
-        public SlideAtomLayout getSSlideLayoutAtom() { return layoutAtom; }
+        public SlideAtomLayout GetSSlideLayoutAtom() { return layoutAtom; }
 
         /** Change the ID of the notes for this slide. 0 if it no longer has one */
-        public void setNotesID(int id) { notesID = id; }
+        public void SetNotesID(int id) { notesID = id; }
 
-        public bool getFollowMasterObjects() { return followMasterObjects; }
-        public bool getFollowMasterScheme() { return followMasterScheme; }
-        public bool getFollowMasterBackground() { return followMasterBackground; }
-        public void setFollowMasterObjects(bool flag) { followMasterObjects = flag; }
-        public void setFollowMasterScheme(bool flag) { followMasterScheme = flag; }
-        public void setFollowMasterBackground(bool flag) { followMasterBackground = flag; }
+        public bool GetFollowMasterObjects() { return followMasterObjects; }
+        public bool GetFollowMasterScheme() { return followMasterScheme; }
+        public bool GetFollowMasterBackground() { return followMasterBackground; }
+        public void SetFollowMasterObjects(bool flag) { followMasterObjects = flag; }
+        public void SetFollowMasterScheme(bool flag) { followMasterScheme = flag; }
+        public void SetFollowMasterBackground(bool flag) { followMasterBackground = flag; }
 
 
         /* *************** record code follows ********************** */
@@ -112,7 +112,7 @@ namespace NPOI.HSLF.Record
 
             byte[] ssdate = new byte[12];
             layoutAtom = new SlideAtomLayout(ssdate);
-            layoutAtom.SetGeometryType(SlideLayoutType.BLANK_SLIDE);
+            layoutAtom.SetGeometryType(SlideAtomLayout.SlideLayoutType.BLANK_SLIDE);
 
             followMasterObjects = true;
             followMasterScheme = true;
@@ -125,7 +125,7 @@ namespace NPOI.HSLF.Record
         /**
          * We are of type 1007
          */
-        public long getRecordType() { return _type; }
+        public override long GetRecordType() { return _type; }
 
         /**
          * Write the contents of the record back, so it can be written
@@ -155,16 +155,20 @@ namespace NPOI.HSLF.Record
             _out.Write(reserved);
         }
 
-
+        public override IDictionary<string, Func<object>> GetGenericProperties()
+        {
+            throw new NotImplementedException();
+        }
+        
         public IDictionary<string, Func<T>> GetGenericProperties<T>()
         {
             return (IDictionary<string, Func<T>>)GenericRecordUtil.GetGenericProperties(
-                "masterID", () => getMasterID(),
-                "notesID", () => getNotesID(),
-                "followMasterObjects", () => getFollowMasterObjects(),
-                "followMasterScheme", () => getFollowMasterScheme(),
-                "followMasterBackground", () => getFollowMasterBackground(),
-                "layoutAtom", getSSlideLayoutAtom
+                "masterID", () => GetMasterID(),
+                "notesID", () => GetNotesID(),
+                "followMasterObjects", () => GetFollowMasterObjects(),
+                "followMasterScheme", () => GetFollowMasterScheme(),
+                "followMasterBackground", () => GetFollowMasterBackground(),
+                "layoutAtom", GetSSlideLayoutAtom
             );
         }
     }
