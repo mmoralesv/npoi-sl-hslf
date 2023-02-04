@@ -67,45 +67,45 @@ namespace NPOI.HSLF.UserModel
      * @return the record container which holds this shape
      */
 	////@Override
-	protected EscherContainerRecord createSpContainer(boolean isChild)
-	{
-		EscherContainerRecord ecr = super.createSpContainer(isChild);
-		ecr.setRecordId(EscherContainerRecord.SP_CONTAINER);
+	//protected EscherContainerRecord createSpContainer(boolean isChild)
+	//{
+	//	EscherContainerRecord ecr = super.createSpContainer(isChild);
+	//	ecr.setRecordId(EscherContainerRecord.SP_CONTAINER);
 
-		EscherSpRecord sp = new EscherSpRecord();
-		int flags = EscherSpRecord.FLAG_HAVEANCHOR | EscherSpRecord.FLAG_HASSHAPETYPE;
-		if (isChild)
-		{
-			flags |= EscherSpRecord.FLAG_CHILD;
-		}
-		sp.setFlags(flags);
-		ecr.addChildRecord(sp);
+	//	EscherSpRecord sp = new EscherSpRecord();
+	//	int flags = EscherSpRecord.FLAG_HAVEANCHOR | EscherSpRecord.FLAG_HASSHAPETYPE;
+	//	if (isChild)
+	//	{
+	//		flags |= EscherSpRecord.FLAG_CHILD;
+	//	}
+	//	sp.setFlags(flags);
+	//	ecr.addChildRecord(sp);
 
-		AbstractEscherOptRecord opt = new EscherOptRecord();
-		opt.setRecordId(EscherOptRecord.RECORD_ID);
-		ecr.addChildRecord(opt);
+	//	AbstractEscherOptRecord opt = new EscherOptRecord();
+	//	opt.setRecordId(EscherOptRecord.RECORD_ID);
+	//	ecr.addChildRecord(opt);
 
-		EscherRecord anchor;
-		if (isChild)
-		{
-			anchor = new EscherChildAnchorRecord();
-		}
-		else
-		{
-			anchor = new EscherClientAnchorRecord();
+	//	EscherRecord anchor;
+	//	if (isChild)
+	//	{
+	//		anchor = new EscherChildAnchorRecord();
+	//	}
+	//	else
+	//	{
+	//		anchor = new EscherClientAnchorRecord();
 
-			//hack. internal variable EscherClientAnchorRecord.shortRecord can be
-			//initialized only in fillFields(). We need to set shortRecord=false;
-			byte[] header = new byte[16];
-			LittleEndian.putUShort(header, 0, 0);
-			LittleEndian.putUShort(header, 2, 0);
-			LittleEndian.putInt(header, 4, 8);
-			anchor.fillFields(header, 0, null);
-		}
-		ecr.addChildRecord(anchor);
+	//		//hack. internal variable EscherClientAnchorRecord.shortRecord can be
+	//		//initialized only in fillFields(). We need to set shortRecord=false;
+	//		byte[] header = new byte[16];
+	//		LittleEndian.putUShort(header, 0, 0);
+	//		LittleEndian.putUShort(header, 2, 0);
+	//		LittleEndian.putInt(header, 4, 8);
+	//		anchor.fillFields(header, 0, null);
+	//	}
+	//	ecr.addChildRecord(anchor);
 
-		return ecr;
-	}
+	//	return ecr;
+	//}
 
 	/**
      *  Returns width of the line in in points
@@ -113,7 +113,7 @@ namespace NPOI.HSLF.UserModel
 	public double getLineWidth()
 	{
 		AbstractEscherOptRecord opt = getEscherOptRecord();
-		EscherSimpleProperty prop = getEscherProperty(opt, EscherPropertyTypes.LINESTYLE__LINEWIDTH);
+		EscherSimpleProperty prop = getEscherProperty(opt, EscherProperties.LINESTYLE__LINEWIDTH);
 		return (prop == null) ? DEFAULT_LINE_WIDTH : Units.toPoints(prop.getPropertyValue());
 	}
 
@@ -124,7 +124,7 @@ namespace NPOI.HSLF.UserModel
 	public void setLineWidth(double width)
 	{
 		AbstractEscherOptRecord opt = getEscherOptRecord();
-		setEscherProperty(opt, EscherPropertyTypes.LINESTYLE__LINEWIDTH, Units.toEMU(width));
+		setEscherProperty(opt, EscherProperties.LINESTYLE__LINEWIDTH, Units.toEMU(width));
 	}
 
 	/**
@@ -137,13 +137,13 @@ namespace NPOI.HSLF.UserModel
 		AbstractEscherOptRecord opt = getEscherOptRecord();
 		if (color == null)
 		{
-			setEscherProperty(opt, EscherPropertyTypes.LINESTYLE__NOLINEDRAWDASH, 0x80000);
+			setEscherProperty(opt, EscherProperties.LINESTYLE__NOLINEDRAWDASH, 0x80000);
 		}
 		else
 		{
 			int rgb = new Color(color.getBlue(), color.getGreen(), color.getRed(), 0).getRGB();
-			setEscherProperty(opt, EscherPropertyTypes.LINESTYLE__COLOR, rgb);
-			setEscherProperty(opt, EscherPropertyTypes.LINESTYLE__NOLINEDRAWDASH, 0x180018);
+			setEscherProperty(opt, EscherProperties.LINESTYLE__COLOR, rgb);
+			setEscherProperty(opt, EscherProperties.LINESTYLE__NOLINEDRAWDASH, 0x180018);
 		}
 	}
 
@@ -154,13 +154,13 @@ namespace NPOI.HSLF.UserModel
 	{
 		AbstractEscherOptRecord opt = getEscherOptRecord();
 
-		EscherSimpleProperty p = getEscherProperty(opt, EscherPropertyTypes.LINESTYLE__NOLINEDRAWDASH);
+		EscherSimpleProperty p = getEscherProperty(opt, EscherProperties.LINESTYLE__NOLINEDRAWDASH);
 		if (p != null && (p.getPropertyValue() & 0x8) == 0)
 		{
 			return null;
 		}
 
-		return getColor(EscherPropertyTypes.LINESTYLE__COLOR, EscherPropertyTypes.LINESTYLE__OPACITY);
+		return getColor(EscherProperties.LINESTYLE__COLOR, EscherProperties.LINESTYLE__OPACITY);
 	}
 
 	/**
@@ -170,13 +170,13 @@ namespace NPOI.HSLF.UserModel
 	{
 		AbstractEscherOptRecord opt = getEscherOptRecord();
 
-		EscherSimpleProperty p = getEscherProperty(opt, EscherPropertyTypes.LINESTYLE__NOLINEDRAWDASH);
+		EscherSimpleProperty p = getEscherProperty(opt, EscherProperties.LINESTYLE__NOLINEDRAWDASH);
 		if (p != null && (p.getPropertyValue() & 0x8) == 0)
 		{
 			return null;
 		}
 
-		return getColor(EscherPropertyTypes.LINESTYLE__BACKCOLOR, EscherPropertyTypes.LINESTYLE__OPACITY);
+		return getColor(EscherProperties.LINESTYLE__BACKCOLOR, EscherProperties.LINESTYLE__OPACITY);
 	}
 
 	/**
@@ -189,14 +189,14 @@ namespace NPOI.HSLF.UserModel
 		AbstractEscherOptRecord opt = getEscherOptRecord();
 		if (color == null)
 		{
-			setEscherProperty(opt, EscherPropertyTypes.LINESTYLE__NOLINEDRAWDASH, 0x80000);
-			opt.removeEscherProperty(EscherPropertyTypes.LINESTYLE__BACKCOLOR);
+			setEscherProperty(opt, EscherProperties.LINESTYLE__NOLINEDRAWDASH, 0x80000);
+			opt.removeEscherProperty(EscherProperties.LINESTYLE__BACKCOLOR);
 		}
 		else
 		{
 			int rgb = new Color(color.getBlue(), color.getGreen(), color.getRed(), 0).getRGB();
-			setEscherProperty(opt, EscherPropertyTypes.LINESTYLE__BACKCOLOR, rgb);
-			setEscherProperty(opt, EscherPropertyTypes.LINESTYLE__NOLINEDRAWDASH, 0x180018);
+			setEscherProperty(opt, EscherProperties.LINESTYLE__BACKCOLOR, rgb);
+			setEscherProperty(opt, EscherProperties.LINESTYLE__NOLINEDRAWDASH, 0x180018);
 		}
 	}
 
@@ -208,7 +208,7 @@ namespace NPOI.HSLF.UserModel
 	public LineCap getLineCap()
 	{
 		AbstractEscherOptRecord opt = getEscherOptRecord();
-		EscherSimpleProperty prop = getEscherProperty(opt, EscherPropertyTypes.LINESTYLE__LINEENDCAPSTYLE);
+		EscherSimpleProperty prop = getEscherProperty(opt, EscherProperties.LINESTYLE__LINEENDCAPSTYLE);
 		return (prop == null) ? LineCap.FLAT : LineCap.fromNativeId(prop.getPropertyValue());
 	}
 
@@ -220,7 +220,7 @@ namespace NPOI.HSLF.UserModel
 	public void setLineCap(LineCap pen)
 	{
 		AbstractEscherOptRecord opt = getEscherOptRecord();
-		setEscherProperty(opt, EscherPropertyTypes.LINESTYLE__LINEENDCAPSTYLE, pen == LineCap.FLAT ? -1 : pen.nativeId);
+		setEscherProperty(opt, EscherProperties.LINESTYLE__LINEENDCAPSTYLE, pen == LineCap.FLAT ? -1 : pen.nativeId);
 	}
 
 	/**
@@ -231,7 +231,7 @@ namespace NPOI.HSLF.UserModel
 	public LineDash getLineDash()
 	{
 		AbstractEscherOptRecord opt = getEscherOptRecord();
-		EscherSimpleProperty prop = getEscherProperty(opt, EscherPropertyTypes.LINESTYLE__LINEDASHING);
+		EscherSimpleProperty prop = getEscherProperty(opt, EscherProperties.LINESTYLE__LINEDASHING);
 		return (prop == null) ? LineDash.SOLID : LineDash.fromNativeId(prop.getPropertyValue());
 	}
 
@@ -243,7 +243,7 @@ namespace NPOI.HSLF.UserModel
 	public void setLineDash(LineDash pen)
 	{
 		AbstractEscherOptRecord opt = getEscherOptRecord();
-		setEscherProperty(opt, EscherPropertyTypes.LINESTYLE__LINEDASHING, pen == LineDash.SOLID ? -1 : pen.nativeId);
+		setEscherProperty(opt, EscherProperties.LINESTYLE__LINEDASHING, pen == LineDash.SOLID ? -1 : pen.nativeId);
 	}
 
 	/**
@@ -254,7 +254,7 @@ namespace NPOI.HSLF.UserModel
 	public LineCompound getLineCompound()
 	{
 		AbstractEscherOptRecord opt = getEscherOptRecord();
-		EscherSimpleProperty prop = getEscherProperty(opt, EscherPropertyTypes.LINESTYLE__LINESTYLE);
+		EscherSimpleProperty prop = getEscherProperty(opt, EscherProperties.LINESTYLE__LINESTYLE);
 		return (prop == null) ? LineCompound.SINGLE : LineCompound.fromNativeId(prop.getPropertyValue());
 	}
 
@@ -266,7 +266,7 @@ namespace NPOI.HSLF.UserModel
 	public void setLineCompound(LineCompound style)
 	{
 		AbstractEscherOptRecord opt = getEscherOptRecord();
-		setEscherProperty(opt, EscherPropertyTypes.LINESTYLE__LINESTYLE, style == LineCompound.SINGLE ? -1 : style.nativeId);
+		setEscherProperty(opt, EscherProperties.LINESTYLE__LINESTYLE, style == LineCompound.SINGLE ? -1 : style.nativeId);
 	}
 
 	/**
@@ -411,9 +411,9 @@ namespace NPOI.HSLF.UserModel
 public double getShadowAngle()
 {
 	AbstractEscherOptRecord opt = getEscherOptRecord();
-	EscherSimpleProperty prop = getEscherProperty(opt, EscherPropertyTypes.SHADOWSTYLE__OFFSETX);
+	EscherSimpleProperty prop = getEscherProperty(opt, EscherProperties.SHADOWSTYLE__OFFSETX);
 	int offX = (prop == null) ? 0 : prop.getPropertyValue();
-	prop = getEscherProperty(opt, EscherPropertyTypes.SHADOWSTYLE__OFFSETY);
+	prop = getEscherProperty(opt, EscherProperties.SHADOWSTYLE__OFFSETY);
 	int offY = (prop == null) ? 0 : prop.getPropertyValue();
 	return Math.toDegrees(Math.atan2(offY, offX));
 }
@@ -421,9 +421,9 @@ public double getShadowAngle()
 public double getShadowDistance()
 {
 	AbstractEscherOptRecord opt = getEscherOptRecord();
-	EscherSimpleProperty prop = getEscherProperty(opt, EscherPropertyTypes.SHADOWSTYLE__OFFSETX);
+	EscherSimpleProperty prop = getEscherProperty(opt, EscherProperties.SHADOWSTYLE__OFFSETX);
 	int offX = (prop == null) ? 0 : prop.getPropertyValue();
-	prop = getEscherProperty(opt, EscherPropertyTypes.SHADOWSTYLE__OFFSETY);
+	prop = getEscherProperty(opt, EscherProperties.SHADOWSTYLE__OFFSETY);
 	int offY = (prop == null) ? 0 : prop.getPropertyValue();
 	return Units.toPoints((long)Math.hypot(offX, offY));
 }
@@ -433,7 +433,7 @@ public double getShadowDistance()
  */
 public Color getShadowColor()
 {
-	Color clr = getColor(EscherPropertyTypes.SHADOWSTYLE__COLOR, EscherPropertyTypes.SHADOWSTYLE__OPACITY);
+	Color clr = getColor(EscherProperties.SHADOWSTYLE__COLOR, EscherProperties.SHADOWSTYLE__OPACITY);
 	return clr == null ? Color.black : clr;
 }
 
@@ -445,7 +445,7 @@ public Color getShadowColor()
 	{
 		return null;
 	}
-	EscherProperty shadowType = opt.lookup(EscherPropertyTypes.SHADOWSTYLE__TYPE);
+	EscherProperty shadowType = opt.lookup(EscherProperties.SHADOWSTYLE__TYPE);
 	if (shadowType == null)
 	{
 		return null;
@@ -494,79 +494,79 @@ public Color getShadowColor()
     public DecorationShape getLineHeadDecoration()
 {
 	AbstractEscherOptRecord opt = getEscherOptRecord();
-	EscherSimpleProperty prop = getEscherProperty(opt, EscherPropertyTypes.LINESTYLE__LINESTARTARROWHEAD);
+	EscherSimpleProperty prop = getEscherProperty(opt, EscherProperties.LINESTYLE__LINESTARTARROWHEAD);
 	return (prop == null) ? null : DecorationShape.fromNativeId(prop.getPropertyValue());
 }
 
 public void setLineHeadDecoration(DecorationShape decoShape)
 {
 	AbstractEscherOptRecord opt = getEscherOptRecord();
-	setEscherProperty(opt, EscherPropertyTypes.LINESTYLE__LINESTARTARROWHEAD, decoShape == null ? -1 : decoShape.nativeId);
+	setEscherProperty(opt, EscherProperties.LINESTYLE__LINESTARTARROWHEAD, decoShape == null ? -1 : decoShape.nativeId);
 }
 
 public DecorationSize getLineHeadWidth()
 {
 	AbstractEscherOptRecord opt = getEscherOptRecord();
-	EscherSimpleProperty prop = getEscherProperty(opt, EscherPropertyTypes.LINESTYLE__LINESTARTARROWWIDTH);
+	EscherSimpleProperty prop = getEscherProperty(opt, EscherProperties.LINESTYLE__LINESTARTARROWWIDTH);
 	return (prop == null) ? null : DecorationSize.fromNativeId(prop.getPropertyValue());
 }
 
 public void setLineHeadWidth(DecorationSize decoSize)
 {
 	AbstractEscherOptRecord opt = getEscherOptRecord();
-	setEscherProperty(opt, EscherPropertyTypes.LINESTYLE__LINESTARTARROWWIDTH, decoSize == null ? -1 : decoSize.nativeId);
+	setEscherProperty(opt, EscherProperties.LINESTYLE__LINESTARTARROWWIDTH, decoSize == null ? -1 : decoSize.nativeId);
 }
 
 public DecorationSize getLineHeadLength()
 {
 	AbstractEscherOptRecord opt = getEscherOptRecord();
-	EscherSimpleProperty prop = getEscherProperty(opt, EscherPropertyTypes.LINESTYLE__LINESTARTARROWLENGTH);
+	EscherSimpleProperty prop = getEscherProperty(opt, EscherProperties.LINESTYLE__LINESTARTARROWLENGTH);
 	return (prop == null) ? null : DecorationSize.fromNativeId(prop.getPropertyValue());
 }
 
 public void setLineHeadLength(DecorationSize decoSize)
 {
 	AbstractEscherOptRecord opt = getEscherOptRecord();
-	setEscherProperty(opt, EscherPropertyTypes.LINESTYLE__LINESTARTARROWLENGTH, decoSize == null ? -1 : decoSize.nativeId);
+	setEscherProperty(opt, EscherProperties.LINESTYLE__LINESTARTARROWLENGTH, decoSize == null ? -1 : decoSize.nativeId);
 }
 
 public DecorationShape getLineTailDecoration()
 {
 	AbstractEscherOptRecord opt = getEscherOptRecord();
-	EscherSimpleProperty prop = getEscherProperty(opt, EscherPropertyTypes.LINESTYLE__LINEENDARROWHEAD);
+	EscherSimpleProperty prop = getEscherProperty(opt, EscherProperties.LINESTYLE__LINEENDARROWHEAD);
 	return (prop == null) ? null : DecorationShape.fromNativeId(prop.getPropertyValue());
 }
 
 public void setLineTailDecoration(DecorationShape decoShape)
 {
 	AbstractEscherOptRecord opt = getEscherOptRecord();
-	setEscherProperty(opt, EscherPropertyTypes.LINESTYLE__LINEENDARROWHEAD, decoShape == null ? -1 : decoShape.nativeId);
+	setEscherProperty(opt, EscherProperties.LINESTYLE__LINEENDARROWHEAD, decoShape == null ? -1 : decoShape.nativeId);
 }
 
 public DecorationSize getLineTailWidth()
 {
 	AbstractEscherOptRecord opt = getEscherOptRecord();
-	EscherSimpleProperty prop = getEscherProperty(opt, EscherPropertyTypes.LINESTYLE__LINEENDARROWWIDTH);
+	EscherSimpleProperty prop = getEscherProperty(opt, EscherProperties.LINESTYLE__LINEENDARROWWIDTH);
 	return (prop == null) ? null : DecorationSize.fromNativeId(prop.getPropertyValue());
 }
 
 public void setLineTailWidth(DecorationSize decoSize)
 {
 	AbstractEscherOptRecord opt = getEscherOptRecord();
-	setEscherProperty(opt, EscherPropertyTypes.LINESTYLE__LINEENDARROWWIDTH, decoSize == null ? -1 : decoSize.nativeId);
+	setEscherProperty(opt, EscherProperties.LINESTYLE__LINEENDARROWWIDTH, decoSize == null ? -1 : decoSize.nativeId);
 }
 
 public DecorationSize getLineTailLength()
 {
 	AbstractEscherOptRecord opt = getEscherOptRecord();
-	EscherSimpleProperty prop = getEscherProperty(opt, EscherPropertyTypes.LINESTYLE__LINEENDARROWLENGTH);
+	EscherSimpleProperty prop = getEscherProperty(opt, EscherProperties.LINESTYLE__LINEENDARROWLENGTH);
 	return (prop == null) ? null : DecorationSize.fromNativeId(prop.getPropertyValue());
 }
 
 public void setLineTailLength(DecorationSize decoSize)
 {
 	AbstractEscherOptRecord opt = getEscherOptRecord();
-	setEscherProperty(opt, EscherPropertyTypes.LINESTYLE__LINEENDARROWLENGTH, decoSize == null ? -1 : decoSize.nativeId);
+	setEscherProperty(opt, EscherProperties.LINESTYLE__LINEENDARROWLENGTH, decoSize == null ? -1 : decoSize.nativeId);
 }
 
 

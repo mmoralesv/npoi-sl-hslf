@@ -126,33 +126,33 @@ namespace NPOI.HSLF.UserModel
 		 * Supply the Sheet we belong to, which might have an assigned SlideShow
 		 * Also passes it on to our child RichTextRuns
 		 */
-		public static void SupplySheet(List<HSLFTextParagraph> paragraphs, HSLFSheet sheet)
-		{
-			if (paragraphs == null)
-			{
-				return;
-			}
-			foreach (HSLFTextParagraph p in paragraphs)
-			{
-				p.SupplySheet(sheet);
-			}
+		//public static void SupplySheet(List<HSLFTextParagraph> paragraphs, HSLFSheet sheet)
+		//{
+		//	if (paragraphs == null)
+		//	{
+		//		return;
+		//	}
+		//	foreach (HSLFTextParagraph p in paragraphs)
+		//	{
+		//		p.SupplySheet(sheet);
+		//	}
 
-			//assert(sheet.getSlideShow() != null);
-		}
+		//	//assert(sheet.getSlideShow() != null);
+		//}
 
 		/**
 		 * Supply the Sheet we belong to, which might have an assigned SlideShow
 		 * Also passes it on to our child RichTextRuns
 		 */
-		private void SupplySheet(HSLFSheet sheet)
-		{
-			this._sheet = sheet;
+		//private void SupplySheet(HSLFSheet sheet)
+		//{
+		//	this._sheet = sheet;
 
-			foreach (HSLFTextRun rt in _runs)
-			{
-				rt.UpdateSheet();
-			}
-		}
+		//	foreach (HSLFTextRun rt in _runs)
+		//	{
+		//		rt.UpdateSheet();
+		//	}
+		//}
 
 		public HSLFSheet GetSheet()
 		{
@@ -1304,7 +1304,7 @@ namespace NPOI.HSLF.UserModel
 		 *
 		 * @param text the text string used by this object.
 		 */
-		protected static HSLFTextRun AppendText(List<HSLFTextParagraph> paragraphs, String text, bool newParagraph)
+		public static HSLFTextRun AppendText(List<HSLFTextParagraph> paragraphs, String text, bool newParagraph)
 		{
 			text = ToInternalString(text);
 
@@ -1329,7 +1329,7 @@ namespace NPOI.HSLF.UserModel
 					htp.SetParagraphStyle(tpc.Copy());
 					htp.SetParentShape(prevHtp.GetParentShape());
 					htp.SetShapeId(prevHtp.GetShapeId());
-					htp.SupplySheet(prevHtp.GetSheet());
+					//htp.SupplySheet(prevHtp.GetSheet());
 					paragraphs.Add(htp);
 				}
 				addParagraph = true;
@@ -1489,7 +1489,7 @@ namespace NPOI.HSLF.UserModel
 		 *
 		 * @param wrapper an EscherTextboxWrapper
 		 */
-		protected static List<HSLFTextParagraph> FindTextParagraphs(EscherTextboxWrapper wrapper, HSLFSheet sheet)
+		public static List<HSLFTextParagraph> FindTextParagraphs(EscherTextboxWrapper wrapper, HSLFSheet sheet)
 		{
 			// propagate parents to parent-aware records
 			RecordContainer.HandleParentAwareRecords(wrapper);

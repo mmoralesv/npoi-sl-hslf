@@ -29,7 +29,7 @@ namespace NPOI.HSLF.UserModel
     /**
      * Represents a picture in a PowerPoint document.
      */
-    public class HSLFPictureShape : HSLFSimpleShape implements PictureShape<HSLFShape,HSLFTextParagraph> {
+    public class HSLFPictureShape : HSLFSimpleShape , PictureShape<HSLFShape,HSLFTextParagraph> {
     private static Logger LOG = LogManager.getLogger(HSLFPictureShape.class);
 
     /**

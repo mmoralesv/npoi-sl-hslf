@@ -29,8 +29,8 @@ namespace NPOI.HSLF.UserModel
     /**
      * A shape representing embedded OLE object.
      */
-    public class HSLFObjectShape : HSLFPictureShape implements ObjectShape<HSLFShape,HSLFTextParagraph> {
-    private static Logger LOG = LogManager.getLogger(HSLFObjectShape.class);
+    public class HSLFObjectShape : HSLFPictureShape, ObjectShape<HSLFShape,HSLFTextParagraph> {
+    //private static Logger LOG = LogManager.getLogger(HSLFObjectShape.class);
 
     private ExEmbed _exEmbed;
 

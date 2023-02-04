@@ -17,6 +17,7 @@
 using NPOI.DDF;
 using NPOI.HSLF.Record;
 using NPOI.SL.UserModel;
+using NPOI.SS.Formula.Functions;
 using NPOI.Util;
 using System;
 using System.Collections.Generic;
@@ -235,6 +236,17 @@ namespace NPOI.HSLF.UserModel
 		{
 			return _escherContainer.GetChildById((short)recordId);
 		}
+
+		/**
+			 * Returns  escher property by type.
+			 *
+			 * @return escher property or {@code null} if not found.
+			 */
+		public static  T GetEscherProperty<T>(AbstractEscherOptRecord opt, int type)where T: EscherProperty
+		{
+			return (T)((opt == null) ? null : opt.Lookup(type));
+		}
+
 
 		/**
 		 * Get the value of a simple escher property for this shape.
